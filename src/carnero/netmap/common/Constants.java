@@ -4,6 +4,9 @@ public class Constants {
 
 	public static final String TAG = "carnero.netmap";
 
+	// url
+	public static final String URL_BASE_GSMWEB = "http://gsmweb.cz/search.php?par=hex&op=all&razeni=original&smer=vzestupne&udaj=";
+
 	// geolocation config
 	public static final int GEO_DISTANCE = 15; // 15 m
 	public static final long GEO_TIME = 30000l; // 30 sec
@@ -13,17 +16,17 @@ public class Constants {
 	public static final int[] EVO_CDMA = new int[] {0, 4, 7, 5, 6, 12, 14};
 	public static final int[] EVO_UMTS = new int[] {3, 8, 9, 10, 15, 13};
 	// network levels
-	public static final int NET_LEVEL_RED = -1;
-	public static final int NET_LEVEL_ORANGE = 0;
-	public static final int NET_LEVEL_YELLOW = 1;
-	public static final int NET_LEVEL_GREEN = 2;
-	public static final int NET_LEVEL_BLUE = 3;
+	public static final int NET_LEVEL_1 = -1;
+	public static final int NET_LEVEL_2 = 0;
+	public static final int NET_LEVEL_3 = 1;
+	public static final int NET_LEVEL_4 = 2;
+	public static final int NET_LEVEL_5 = 3;
 	public static final int[][] NET_LEVELS = new int[][] {
-			{1}, // level orange
-			{2, 3, 4}, // level yellow
-			{8, 9, 10}, // level geen
-			{13, 14, 15} // level blue
-			// level red (everything not defined)
+			// level 1 (everything not defined)
+			{1}, // level 2
+			{2, 3, 4}, // level 3
+			{8, 9, 10}, // level 4
+			{13, 14, 15} // level 5
 	};
 
 	/*

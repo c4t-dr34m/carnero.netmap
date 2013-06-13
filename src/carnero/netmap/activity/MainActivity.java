@@ -18,10 +18,13 @@ import android.view.View;
 import android.widget.TextView;
 import carnero.netmap.App;
 import carnero.netmap.R;
+import carnero.netmap.common.BtsLocationDownloader;
 import carnero.netmap.common.Constants;
 import carnero.netmap.common.Geo;
 import carnero.netmap.common.SimpleGeoReceiver;
 import carnero.netmap.fragment.NetMapFragment;
+import carnero.netmap.model.Bts;
+import carnero.netmap.model.BtsCache;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -155,7 +158,7 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 				return;
 			}
 
-			String url = "http://gsmweb.cz/search.php?par=hex&op=all&razeni=original&smer=vzestupne&udaj=" + Integer.toHexString(mCid).toUpperCase();
+			String url = Constants.URL_BASE_GSMWEB + Integer.toHexString(mCid).toUpperCase();
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.setData(Uri.parse(url));
 
