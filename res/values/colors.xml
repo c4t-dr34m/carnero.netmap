@@ -6,6 +6,9 @@
 	<!-- transparent -->
 	<color name="black_transparent">#88000000</color>
 	<!-- map -->
-	<color name="connection_stroke">#FF000000</color>
-	<color name="connection_fill">#66000000</color>
+	<color name="connection_l1">#AAAE0100</color>
+	<color name="connection_l2">#AA832B00</color>
+	<color name="connection_l3">#AA575700</color>
+	<color name="connection_l4">#AA2B8300</color>
+	<color name="connection_l5">#AA01AD00</color>
 </resources>

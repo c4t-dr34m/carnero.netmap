@@ -25,13 +25,13 @@ public class Constants {
 	public static final int[] EVO_UMTS = new int[] {3, 8, 9, 10, 15, 13};
 
 	// network levels
-	public static final int NET_LEVEL_1 = -1;
-	public static final int NET_LEVEL_2 = 0;
-	public static final int NET_LEVEL_3 = 1;
-	public static final int NET_LEVEL_4 = 2;
-	public static final int NET_LEVEL_5 = 3;
+	public static final int NET_LEVEL_1 = 0;
+	public static final int NET_LEVEL_2 = 1;
+	public static final int NET_LEVEL_3 = 2;
+	public static final int NET_LEVEL_4 = 3;
+	public static final int NET_LEVEL_5 = 4;
 	public static final int[][] NET_LEVELS = new int[][] {
-			// level 1 (everything not defined)
+			{}, // level 1 (everything not defined)
 			{1}, // level 2
 			{2, 3, 4}, // level 3
 			{8, 9, 10}, // level 4

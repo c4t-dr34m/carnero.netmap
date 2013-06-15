@@ -34,6 +34,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	private LatLng mLastLocation;
 	private Polygon mConnectionCurrent;
 	private Marker mMyMarker;
+	private int[] mFillColors = new int[5];
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
 	private LocationListener mLocationListener = new LocationListener();
 	private float mZoomDefault = 16f;
@@ -44,6 +45,12 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 		super.onActivityCreated(state);
 
 		mTelephony = (TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE);
+
+		mFillColors[0] = getResources().getColor(R.color.connection_l1);
+		mFillColors[1] = getResources().getColor(R.color.connection_l2);
+		mFillColors[2] = getResources().getColor(R.color.connection_l3);
+		mFillColors[3] = getResources().getColor(R.color.connection_l4);
+		mFillColors[4] = getResources().getColor(R.color.connection_l5);
 	}
 
 	@Override
@@ -190,7 +197,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 				case Constants.NET_LEVEL_4:
 					pinResource = R.drawable.pin_level_4;
 					break;
-				case Constants.NET_LEVEL_5      :
+				case Constants.NET_LEVEL_5:
 					pinResource = R.drawable.pin_level_5;
 					break;
 				default:
@@ -212,16 +219,19 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 			mBtsMarkers.put(id, marker);
 
 			// connection to current BTS
+			final int fill = mFillColors[level];
+
 			if (mLastLocation != null) {
 				if (mConnectionCurrent == null) {
 					final PolygonOptions polygonOpts = new PolygonOptions();
-					polygonOpts.strokeWidth(getResources().getDimension(R.dimen.connection_stroke));
-					polygonOpts.strokeColor(getResources().getColor(R.color.connection_stroke));
-					polygonOpts.fillColor(getResources().getColor(R.color.connection_fill));
+					polygonOpts.strokeWidth(0);
+					polygonOpts.fillColor(fill);
 					polygonOpts.addAll(LocationUtils.getPointsOfSector(bts.location, mLastLocation));
 
 					mConnectionCurrent = mMap.addPolygon(polygonOpts);
 				} else {
+					mConnectionCurrent.setFillColor(fill);
+
 					final List<LatLng> points = mConnectionCurrent.getPoints();
 					points.clear();
 					points.addAll(LocationUtils.getPointsOfSector(bts.location, mLastLocation));

@@ -1,8 +1,5 @@
 package carnero.netmap.common;
 
-import carnero.netmap.model.NormalHeading;
-import com.google.android.gms.maps.model.LatLng;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 
