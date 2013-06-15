@@ -32,7 +32,8 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	private boolean mCentered = false;
 	private TelephonyManager mTelephony;
 	private LatLng mLastLocation;
-	private Polygon mConnectionCurrent;
+	private LatLng mBtsLocation;
+	private Polyline mConnectionCurrent;
 	private Marker mMyMarker;
 	private int[] mFillColors = new int[5];
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
@@ -111,6 +112,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 		mLastLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
 		setMyMarker();
+		setConnection();
 	}
 
 	public void setMyMarker() {
@@ -133,6 +135,29 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, mZoomDefault));
 
 			mCentered = true;
+		}
+	}
+
+	public void setConnection() {
+		if (mLastLocation == null || mBtsLocation == null) {
+			return;
+		}
+
+		if (mLastLocation != null) {
+			if (mConnectionCurrent == null) {
+				final PolylineOptions polylineOpts = new PolylineOptions();
+				polylineOpts.width(getResources().getDimension(R.dimen.connection_width));
+				polylineOpts.color(getResources().getColor(R.color.connection_current));
+				polylineOpts.add(mBtsLocation);
+				polylineOpts.add(mLastLocation);
+
+				mConnectionCurrent = mMap.addPolyline(polylineOpts);
+			} else {
+				final List<LatLng> points = mConnectionCurrent.getPoints();
+				points.clear();
+				points.add(mBtsLocation);
+				points.add(mLastLocation);
+			}
 		}
 	}
 
@@ -181,6 +206,8 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 				return;
 			}
 
+			mBtsLocation = bts.location;
+
 			Log.d(Constants.TAG, "Location obtained: " + bts.lac + ":" + bts.cid + ", type " + bts.type);
 
 			final String id = Bts.getId(bts);
@@ -218,25 +245,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 			marker = mMap.addMarker(markerOpts);
 			mBtsMarkers.put(id, marker);
 
-			// connection to current BTS
-			final int fill = mFillColors[level];
-
-			if (mLastLocation != null) {
-				if (mConnectionCurrent == null) {
-					final PolygonOptions polygonOpts = new PolygonOptions();
-					polygonOpts.strokeWidth(0);
-					polygonOpts.fillColor(fill);
-					polygonOpts.addAll(LocationUtils.getPointsOfSector(bts.location, mLastLocation));
-
-					mConnectionCurrent = mMap.addPolygon(polygonOpts);
-				} else {
-					mConnectionCurrent.setFillColor(fill);
-
-					final List<LatLng> points = mConnectionCurrent.getPoints();
-					points.clear();
-					points.addAll(LocationUtils.getPointsOfSector(bts.location, mLastLocation));
-				}
-			}
+			setConnection();
 		}
 	}
 

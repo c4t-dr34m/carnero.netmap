@@ -5,7 +5,9 @@
 	<color name="black">@android:color/black</color>
 	<!-- transparent -->
 	<color name="black_transparent">#88000000</color>
-	<!-- map -->
+	<!-- connection -->
+	<color name="connection_current">#AA000000</color>
+	<!-- coverage -->
 	<color name="connection_l1">#AAAE0100</color>
 	<color name="connection_l2">#AA832B00</color>
 	<color name="connection_l3">#AA575700</color>
