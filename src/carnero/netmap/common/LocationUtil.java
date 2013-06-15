@@ -33,27 +33,27 @@ public class LocationUtil {
 		double lon;
 
 		lat = center.latitude;
-		lon = center.longitude + (Constants.SECTOR_WIDTH / 2d);
+		lon = center.longitude + (Constants.SECTOR_WIDTH / 2.0);
 		corners.add(new LatLng(lat, lon));
 
-		lat = center.latitude - (Constants.SECTOR_HEIGHT / 2d);
-		lon = center.longitude + (Constants.SECTOR_WIDTH / 5d);
+		lat = center.latitude - (Constants.SECTOR_HEIGHT / 2.0);
+		lon = center.longitude + (Constants.SECTOR_WIDTH / 4.5);
 		corners.add(new LatLng(lat, lon));
 
-		lat = center.latitude - (Constants.SECTOR_HEIGHT / 2d);
-		lon = center.longitude - (Constants.SECTOR_WIDTH / 5d);
+		lat = center.latitude - (Constants.SECTOR_HEIGHT / 2.0);
+		lon = center.longitude - (Constants.SECTOR_WIDTH / 4.5);
 		corners.add(new LatLng(lat, lon));
 
 		lat = center.latitude;
-		lon = center.longitude - (Constants.SECTOR_WIDTH / 2d);
+		lon = center.longitude - (Constants.SECTOR_WIDTH / 2.0);
 		corners.add(new LatLng(lat, lon));
 
-		lat = center.latitude + (Constants.SECTOR_HEIGHT / 2d);
-		lon = center.longitude - (Constants.SECTOR_WIDTH / 5d);
+		lat = center.latitude + (Constants.SECTOR_HEIGHT / 2.0);
+		lon = center.longitude - (Constants.SECTOR_WIDTH / 4.5);
 		corners.add(new LatLng(lat, lon));
 
-		lat = center.latitude + (Constants.SECTOR_HEIGHT / 2d);
-		lon = center.longitude + (Constants.SECTOR_WIDTH / 5d);
+		lat = center.latitude + (Constants.SECTOR_HEIGHT / 2.0);
+		lon = center.longitude + (Constants.SECTOR_WIDTH / 4.5);
 		corners.add(new LatLng(lat, lon));
 
 		return corners;

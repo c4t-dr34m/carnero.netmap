@@ -23,6 +23,7 @@ import carnero.netmap.model.CoverageSector;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -171,10 +172,11 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 
 			mConnectionCurrent = mMap.addPolyline(polylineOpts);
 		} else {
-			final List<LatLng> points = mConnectionCurrent.getPoints();
-			points.clear();
+			final List<LatLng> points = new ArrayList<LatLng>();
 			points.add(mLastBts.location);
 			points.add(mLastLocation);
+
+			mConnectionCurrent.setPoints(points );
 		}
 	}
 
