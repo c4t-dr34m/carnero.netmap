@@ -11,10 +11,19 @@ public class Constants {
 	public static final int GEO_DISTANCE = 15; // 15 m
 	public static final long GEO_TIME = 30000l; // 30 sec
 
+	// BTS circle sections
+	public static final int BTS_SECTORS = 10;
+
+	// useful constants
+	public static final double DEG_TO_RAD = Math.PI / 180;
+	public static final double RAD_TO_DEG = 180 / Math.PI;
+	public static final double EARTH_D = 6371.0;
+
 	// network evolution
 	public static final int[] EVO_GSM = new int[] {0, 1, 2};
 	public static final int[] EVO_CDMA = new int[] {0, 4, 7, 5, 6, 12, 14};
 	public static final int[] EVO_UMTS = new int[] {3, 8, 9, 10, 15, 13};
+
 	// network levels
 	public static final int NET_LEVEL_1 = -1;
 	public static final int NET_LEVEL_2 = 0;

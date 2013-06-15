@@ -5,4 +5,7 @@
 	<color name="black">@android:color/black</color>
 	<!-- transparent -->
 	<color name="black_transparent">#88000000</color>
+	<!-- map -->
+	<color name="connection_stroke">#FF000000</color>
+	<color name="connection_fill">#66000000</color>
 </resources>

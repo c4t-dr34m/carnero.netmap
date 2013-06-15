@@ -20,10 +20,7 @@ import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
 import com.google.android.gms.maps.*;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +31,8 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	private GoogleMap mMap;
 	private boolean mCentered = false;
 	private TelephonyManager mTelephony;
-	private Location mLastLocation;
+	private LatLng mLastLocation;
+	private Polygon mConnectionCurrent;
 	private Marker mMyMarker;
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
 	private LocationListener mLocationListener = new LocationListener();
@@ -103,7 +101,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	}
 
 	public void onLocationChanged(Location location) {
-		mLastLocation = location;
+		mLastLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
 		setMyMarker();
 	}
@@ -113,21 +111,19 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 			return;
 		}
 
-		final LatLng position = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-
 		if (mMyMarker == null) {
 			final MarkerOptions options = new MarkerOptions();
-			options.position(position);
+			options.position(mLastLocation);
 			options.icon(BitmapDescriptorFactory.fromResource(R.drawable.pin_my));
 			options.anchor(0.5f, 0.5f);
 
 			mMyMarker = mMap.addMarker(options);
 		} else {
-			mMyMarker.setPosition(position);
+			mMyMarker.setPosition(mLastLocation);
 		}
 
 		if (!mCentered) {
-			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, mZoomDefault));
+			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, mZoomDefault));
 
 			mCentered = true;
 		}
@@ -206,13 +202,31 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 				marker.remove();
 			}
 
-			final MarkerOptions options = new MarkerOptions();
-			options.position(bts.location);
-			options.icon(BitmapDescriptorFactory.fromResource(pinResource));
-			options.anchor(0.5f, 1.0f);
+			// current BTS marker
+			final MarkerOptions markerOpts = new MarkerOptions();
+			markerOpts.position(bts.location);
+			markerOpts.icon(BitmapDescriptorFactory.fromResource(pinResource));
+			markerOpts.anchor(0.5f, 1.0f);
 
-			marker = mMap.addMarker(options);
+			marker = mMap.addMarker(markerOpts);
 			mBtsMarkers.put(id, marker);
+
+			// connection to current BTS
+			if (mLastLocation != null) {
+				if (mConnectionCurrent == null) {
+					final PolygonOptions polygonOpts = new PolygonOptions();
+					polygonOpts.strokeWidth(getResources().getDimension(R.dimen.connection_stroke));
+					polygonOpts.strokeColor(getResources().getColor(R.color.connection_stroke));
+					polygonOpts.fillColor(getResources().getColor(R.color.connection_fill));
+					polygonOpts.addAll(LocationUtils.getPointsOfSector(bts.location, mLastLocation));
+
+					mConnectionCurrent = mMap.addPolygon(polygonOpts);
+				} else {
+					final List<LatLng> points = mConnectionCurrent.getPoints();
+					points.clear();
+					points.addAll(LocationUtils.getPointsOfSector(bts.location, mLastLocation));
+				}
+			}
 		}
 	}
 

@@ -1,5 +1,8 @@
 package carnero.netmap.common;
 
+import carnero.netmap.model.NormalHeading;
+import com.google.android.gms.maps.model.LatLng;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 
@@ -23,6 +26,13 @@ public class Util {
 		return Constants.NET_LEVEL_1;
 	}
 
+	/**
+	 * Transfers string from reader to buffer
+	 *
+	 * @param br
+	 * @param buffer
+	 * @throws IOException
+	 */
 	public static void readIntoBuffer(BufferedReader br, StringBuffer buffer) throws IOException {
 		int bufferSize = 1024*16;
 		char[] bytes = new char[bufferSize];
@@ -30,8 +40,7 @@ public class Util {
 		while ((bytesRead = br.read(bytes)) > 0) {
 			if (bytesRead == bufferSize) {
 				buffer.append(bytes);
-			}
-			else {
+			} else {
 				buffer.append(bytes, 0, bytesRead);
 			}
 		}

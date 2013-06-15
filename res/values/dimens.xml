@@ -2,4 +2,6 @@
 <resources>
 	<dimen name="size_quantum">8dp</dimen>
 	<dimen name="size_quantum_half">4dp</dimen>
+	<!-- map -->
+	<dimen name="connection_stroke">2dp</dimen>
 </resources>
