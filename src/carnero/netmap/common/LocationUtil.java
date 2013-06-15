@@ -1,37 +1,27 @@
 package carnero.netmap.common;
 
-import carnero.netmap.model.CoverageSector;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
-public class LocationUtils {
+public class LocationUtil {
 
-	public static CoverageSector getSector(LatLng position) {
-		final CoverageSector sector = new CoverageSector();
-		sector.center = getSectorCenter(position);
-		sector.corners = getSectorCorners(sector.center);
-
-		return sector;
+	public static int getSectorX(LatLng position) {
+		return (int) Math.floor(position.longitude / Constants.SECTOR_WIDTH);
 	}
 
-	public static LatLng getSectorCenter(LatLng position) {
-		final int sectorsLat = (int) Math.floor(Math.abs(position.latitude) / Constants.SECTOR_HEIGHT);
-		final int sectorsLon = (int) Math.floor(Math.abs(position.longitude) / Constants.SECTOR_WIDTH);
-		final boolean bottom = ((sectorsLon % 2) == 0);
+	public static int getSectorY(LatLng position) {
+		return (int) Math.floor(position.latitude / Constants.SECTOR_HEIGHT);
+	}
 
-		double centerLat = Math.abs(sectorsLat) * Constants.SECTOR_HEIGHT;
+	public static LatLng getSectorCenter(int x, int y) {
+		final boolean bottom = ((x % 2) == 0);
+
+		double centerLat = (Math.abs(y) * Constants.SECTOR_HEIGHT);
 		if (!bottom) {
 			centerLat += (Constants.SECTOR_HEIGHT / 2);
 		}
-		double centerLon = (Math.abs(sectorsLon) * Constants.SECTOR_WIDTH) + (Constants.SECTOR_WIDTH / 2);
-
-		if (position.latitude < 0) {
-			centerLat = -centerLat;
-		}
-		if (position.longitude < 0) {
-			centerLon = -centerLon;
-		}
+		double centerLon = (Math.abs(x) * Constants.SECTOR_WIDTH) + (Constants.SECTOR_WIDTH / 2);
 
 		return new LatLng(centerLat, centerLon);
 	}

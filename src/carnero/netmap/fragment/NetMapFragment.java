@@ -33,7 +33,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	private boolean mCentered = false;
 	private TelephonyManager mTelephony;
 	private LatLng mLastLocation;
-	private LatLng mBtsLocation;
+	private Bts mLastBts;
 	private Marker mMyMarker;
 	private Polyline mConnectionCurrent;
 	private Polygon mCoverage;
@@ -122,6 +122,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 			return;
 		}
 
+		// my current position
 		if (mMyMarker == null) {
 			final MarkerOptions markerOpts = new MarkerOptions();
 			markerOpts.position(mLastLocation);
@@ -133,17 +134,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 			mMyMarker.setPosition(mLastLocation);
 		}
 
-		if (mCoverage != null) {
-			mCoverage.remove();
-		}
-		final CoverageSector sector = LocationUtils.getSector(mLastLocation);
-		final PolygonOptions polygonOpts = new PolygonOptions();
-		polygonOpts.strokeWidth(0);
-		polygonOpts.fillColor(getResources().getColor(R.color.connection_l5));
-		polygonOpts.addAll(sector.corners);
-
-		mCoverage = mMap.addPolygon(polygonOpts);
-
 		if (!mCentered) {
 			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, mZoomDefault));
 
@@ -152,25 +142,39 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	}
 
 	public void setConnection() {
-		if (mLastLocation == null || mBtsLocation == null) {
+		if (mLastLocation == null || mLastBts == null) {
 			return;
 		}
 
-		if (mLastLocation != null) {
-			if (mConnectionCurrent == null) {
-				final PolylineOptions polylineOpts = new PolylineOptions();
-				polylineOpts.width(getResources().getDimension(R.dimen.connection_width));
-				polylineOpts.color(getResources().getColor(R.color.connection_current));
-				polylineOpts.add(mBtsLocation);
-				polylineOpts.add(mLastLocation);
+		// coverage
+		final CoverageSector sector = new CoverageSector(mLastLocation, Util.getNetworkLevel(mLastBts.type));
+		final int level = Util.getNetworkLevel(mLastBts.type);
+		final int fill = mFillColors[level - 1];
 
-				mConnectionCurrent = mMap.addPolyline(polylineOpts);
-			} else {
-				final List<LatLng> points = mConnectionCurrent.getPoints();
-				points.clear();
-				points.add(mBtsLocation);
-				points.add(mLastLocation);
-			}
+		final PolygonOptions polygonOpts = new PolygonOptions();
+		polygonOpts.strokeWidth(0);
+		polygonOpts.fillColor(fill);
+		polygonOpts.addAll(sector.corners);
+
+		if (mCoverage != null) {
+			mCoverage.remove();
+		}
+		mCoverage = mMap.addPolygon(polygonOpts);
+
+		// connection
+		if (mConnectionCurrent == null) {
+			final PolylineOptions polylineOpts = new PolylineOptions();
+			polylineOpts.width(getResources().getDimension(R.dimen.connection_width));
+			polylineOpts.color(getResources().getColor(R.color.connection_current));
+			polylineOpts.add(mLastBts.location);
+			polylineOpts.add(mLastLocation);
+
+			mConnectionCurrent = mMap.addPolyline(polylineOpts);
+		} else {
+			final List<LatLng> points = mConnectionCurrent.getPoints();
+			points.clear();
+			points.add(mLastBts.location);
+			points.add(mLastLocation);
 		}
 	}
 
@@ -219,7 +223,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 				return;
 			}
 
-			mBtsLocation = bts.location;
+			mLastBts = bts;
 
 			Log.d(Constants.TAG, "Location obtained: " + bts.lac + ":" + bts.cid + ", type " + bts.type);
 
