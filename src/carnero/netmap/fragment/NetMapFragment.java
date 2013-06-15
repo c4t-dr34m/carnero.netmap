@@ -19,6 +19,7 @@ import carnero.netmap.common.*;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
+import carnero.netmap.model.CoverageSector;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
@@ -33,8 +34,9 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	private TelephonyManager mTelephony;
 	private LatLng mLastLocation;
 	private LatLng mBtsLocation;
-	private Polyline mConnectionCurrent;
 	private Marker mMyMarker;
+	private Polyline mConnectionCurrent;
+	private Polygon mCoverage;
 	private int[] mFillColors = new int[5];
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
 	private LocationListener mLocationListener = new LocationListener();
@@ -121,15 +123,26 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 		}
 
 		if (mMyMarker == null) {
-			final MarkerOptions options = new MarkerOptions();
-			options.position(mLastLocation);
-			options.icon(BitmapDescriptorFactory.fromResource(R.drawable.pin_my));
-			options.anchor(0.5f, 0.5f);
+			final MarkerOptions markerOpts = new MarkerOptions();
+			markerOpts.position(mLastLocation);
+			markerOpts.icon(BitmapDescriptorFactory.fromResource(R.drawable.pin_my));
+			markerOpts.anchor(0.5f, 0.5f);
 
-			mMyMarker = mMap.addMarker(options);
+			mMyMarker = mMap.addMarker(markerOpts);
 		} else {
 			mMyMarker.setPosition(mLastLocation);
 		}
+
+		if (mCoverage != null) {
+			mCoverage.remove();
+		}
+		final CoverageSector sector = LocationUtils.getSector(mLastLocation);
+		final PolygonOptions polygonOpts = new PolygonOptions();
+		polygonOpts.strokeWidth(0);
+		polygonOpts.fillColor(getResources().getColor(R.color.connection_l5));
+		polygonOpts.addAll(sector.corners);
+
+		mCoverage = mMap.addPolygon(polygonOpts);
 
 		if (!mCentered) {
 			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, mZoomDefault));

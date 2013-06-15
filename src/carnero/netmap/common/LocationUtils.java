@@ -1,23 +1,72 @@
 package carnero.netmap.common;
 
-import carnero.netmap.model.NormalHeading;
+import carnero.netmap.model.CoverageSector;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
 public class LocationUtils {
 
-	public static ArrayList<LatLng> getPointsOfSector(LatLng locationBts, LatLng locationReceiver) {
-		final double distance = getDistance(locationBts, locationReceiver);
-		final double heading = getHeading(locationBts, locationReceiver);
-		final NormalHeading headings = normalizeHeading(heading);
+	public static CoverageSector getSector(LatLng position) {
+		final CoverageSector sector = new CoverageSector();
+		sector.center = getSectorCenter(position);
+		sector.corners = getSectorCorners(sector.center);
 
-		final ArrayList<LatLng> points = new ArrayList<LatLng>();
-		points.add(locationBts);
-		points.add(getPointInDirection(locationBts, headings.from, distance));
-		points.add(getPointInDirection(locationBts, headings.to, distance));
+		return sector;
+	}
 
-		return points;
+	public static LatLng getSectorCenter(LatLng position) {
+		final int sectorsLat = (int) Math.floor(Math.abs(position.latitude) / Constants.SECTOR_HEIGHT);
+		final int sectorsLon = (int) Math.floor(Math.abs(position.longitude) / Constants.SECTOR_WIDTH);
+		final boolean bottom = ((sectorsLon % 2) == 0);
+
+		double centerLat = Math.abs(sectorsLat) * Constants.SECTOR_HEIGHT;
+		if (!bottom) {
+			centerLat += (Constants.SECTOR_HEIGHT / 2);
+		}
+		double centerLon = (Math.abs(sectorsLon) * Constants.SECTOR_WIDTH) + (Constants.SECTOR_WIDTH / 2);
+
+		if (position.latitude < 0) {
+			centerLat = -centerLat;
+		}
+		if (position.longitude < 0) {
+			centerLon = -centerLon;
+		}
+
+		return new LatLng(centerLat, centerLon);
+	}
+
+	public static ArrayList<LatLng> getSectorCorners(LatLng center) {
+		final ArrayList<LatLng> corners = new ArrayList<LatLng>();
+
+		double lat;
+		double lon;
+
+		lat = center.latitude;
+		lon = center.longitude + (Constants.SECTOR_WIDTH / 2d);
+		corners.add(new LatLng(lat, lon));
+
+		lat = center.latitude - (Constants.SECTOR_HEIGHT / 2d);
+		lon = center.longitude + (Constants.SECTOR_WIDTH / 5d);
+		corners.add(new LatLng(lat, lon));
+
+		lat = center.latitude - (Constants.SECTOR_HEIGHT / 2d);
+		lon = center.longitude - (Constants.SECTOR_WIDTH / 5d);
+		corners.add(new LatLng(lat, lon));
+
+		lat = center.latitude;
+		lon = center.longitude - (Constants.SECTOR_WIDTH / 2d);
+		corners.add(new LatLng(lat, lon));
+
+		lat = center.latitude + (Constants.SECTOR_HEIGHT / 2d);
+		lon = center.longitude - (Constants.SECTOR_WIDTH / 5d);
+		corners.add(new LatLng(lat, lon));
+
+		lat = center.latitude + (Constants.SECTOR_HEIGHT / 2d);
+		lon = center.longitude + (Constants.SECTOR_WIDTH / 5d);
+		corners.add(new LatLng(lat, lon));
+
+		return corners;
 	}
 
 	/**
@@ -74,19 +123,6 @@ public class LocationUtils {
 		}
 
 		return result;
-	}
-
-	/**
-	 * Returns angle from-to to define one of sectors of circle
-	 *
-	 * @param heading
-	 * @return
-	 */
-	public static NormalHeading normalizeHeading(double heading) {
-		float sectorSize = 360 / Constants.BTS_SECTORS;
-		int sector = (int) Math.floor(heading / sectorSize);
-
-		return new NormalHeading(sector * sectorSize);
 	}
 
 	/**
