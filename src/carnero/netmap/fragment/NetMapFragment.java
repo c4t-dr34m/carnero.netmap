@@ -21,6 +21,7 @@ import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -31,9 +32,10 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 
 	private Geo mGeo;
 	private GoogleMap mMap;
+	private boolean mCentered = false;
 	private TelephonyManager mTelephony;
 	private Location mLastLocation;
-	private Marker mMyPosition;
+	private Marker mMyMarker;
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
 	private LocationListener mLocationListener = new LocationListener();
 	private float mZoomDefault = 16f;
@@ -103,7 +105,32 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	public void onLocationChanged(Location location) {
 		mLastLocation = location;
 
-		// setMyMarker();
+		setMyMarker();
+	}
+
+	public void setMyMarker() {
+		if (mLastLocation == null) {
+			return;
+		}
+
+		final LatLng position = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+
+		if (mMyMarker == null) {
+			final MarkerOptions options = new MarkerOptions();
+			options.position(position);
+			options.icon(BitmapDescriptorFactory.fromResource(R.drawable.pin_my));
+			options.anchor(0.5f, 0.5f);
+
+			mMyMarker = mMap.addMarker(options);
+		} else {
+			mMyMarker.setPosition(position);
+		}
+
+		if (!mCentered) {
+			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, mZoomDefault));
+
+			mCentered = true;
+		}
 	}
 
 	public void getCellInfo() {
