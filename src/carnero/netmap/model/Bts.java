@@ -1,16 +1,15 @@
 package carnero.netmap.model;
 
-import android.util.Log;
 import carnero.netmap.common.BtsLocationDownloader;
-import carnero.netmap.common.Constants;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import com.google.android.gms.maps.model.LatLng;
 
 public class Bts {
 
-	public int type;
 	public int lac;
 	public int cid;
+	public String operator;
+	public int type;
 	public LatLng location;
 	//
 	private boolean mLoading = false;

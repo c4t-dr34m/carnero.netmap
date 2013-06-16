@@ -96,12 +96,12 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 			mWiFi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 		}
 
-		long time = System.currentTimeMillis();
-		int wifi = mWiFi.getWifiState();
+		// long time = System.currentTimeMillis();
+		// int wifi = mWiFi.getWifiState();
 		String operator = mTelephony.getNetworkOperator();
 		String opName = mTelephony.getNetworkOperatorName();
-		boolean roaming = mTelephony.isNetworkRoaming();
-		int data = mTelephony.getDataState();
+		// boolean roaming = mTelephony.isNetworkRoaming();
+		// int data = mTelephony.getDataState();
 		int type = mTelephony.getNetworkType();
 
 		if (cell == null) {
