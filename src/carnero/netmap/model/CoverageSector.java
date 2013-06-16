@@ -7,16 +7,22 @@ import java.util.List;
 
 public class CoverageSector {
 
-	public int x;
-	public int y;
+	public XY index;
 	public int level;
 	public LatLng center;
 	public List<LatLng> corners;
 
+	public CoverageSector(XY index, int level) {
+		this.index = index;
+		this.center = LocationUtil.getSectorCenter(index);
+		this.corners = LocationUtil.getSectorHexagon(center);
+		this.level = level;
+	}
+
 	public CoverageSector(LatLng position, int level) {
-		x = LocationUtil.getSectorX(position);
-		y = LocationUtil.getSectorY(position);
-		center = LocationUtil.getSectorCenter(x, y);
-		corners = LocationUtil.getSectorCorners(center);
+		this.index = LocationUtil.getSectorXY(position);
+		this.center = LocationUtil.getSectorCenter(index);
+		this.corners = LocationUtil.getSectorHexagon(center);
+		this.level = level;
 	}
 }

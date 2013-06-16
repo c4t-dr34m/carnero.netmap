@@ -12,8 +12,9 @@ public class Constants {
 	public static final long GEO_TIME = 30000l; // 30 sec
 
 	// BTS circle sections
-	public static final double SECTOR_WIDTH = 0.002; // longitude
-	public static final double SECTOR_HEIGHT = 0.001; // latitude
+	public static final double SECTOR_WIDTH = 0.0020; // longitude
+	public static final double SECTOR_HEIGHT = 0.0015; // latitude
+	public static final double SECTOR_HEIGHT_CROP = 0.0015 / 4.0; // latitude
 
 	// useful constants
 	public static final double DEG_TO_RAD = Math.PI / 180;

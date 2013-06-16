@@ -1,62 +1,221 @@
 package carnero.netmap.common;
 
+import android.util.Log;
+import carnero.netmap.model.XY;
 import com.google.android.gms.maps.model.LatLng;
-
 import java.util.ArrayList;
 
 public class LocationUtil {
 
-	public static int getSectorX(LatLng position) {
-		return (int) Math.floor(position.longitude / Constants.SECTOR_WIDTH);
-	}
+	/**
+	 * Get x,y index of hexagon that contains given position
+	 *
+	 * @param position
+	 * @return
+	 */
+	public static XY getSectorXY(LatLng position) {
+		final XY xy = new XY();
 
-	public static int getSectorY(LatLng position) {
-		return (int) Math.floor(position.latitude / Constants.SECTOR_HEIGHT);
-	}
+		xy.y = (int) Math.floor(position.latitude / (Constants.SECTOR_HEIGHT - Constants.SECTOR_HEIGHT_CROP));
 
-	public static LatLng getSectorCenter(int x, int y) {
-		final boolean bottom = ((x % 2) == 0);
-
-		double centerLat = (Math.abs(y) * Constants.SECTOR_HEIGHT);
-		if (!bottom) {
-			centerLat += (Constants.SECTOR_HEIGHT / 2);
+		if ((xy.y % 2) == 0) {
+			xy.x = (int) Math.floor((position.longitude + (Constants.SECTOR_WIDTH / 2)) / Constants.SECTOR_WIDTH);
+		} else {
+			xy.x = (int) Math.floor(position.longitude / Constants.SECTOR_WIDTH);
 		}
-		double centerLon = (Math.abs(x) * Constants.SECTOR_WIDTH) + (Constants.SECTOR_WIDTH / 2);
+
+		final LatLng center = getSectorCenter(xy);
+		final ArrayList<LatLng> hex = getSectorHexagon(center);
+		final ArrayList<LatLng> sqr = getSectorSquare(center);
+
+		Log.d(">>>>", "raw: " + xy.x + ", " + xy.y);
+
+		if (inTriangle(position, hex.get(0), hex.get(1), sqr.get(0))) {
+			xy.y ++;
+		} else if (inTriangle(position, hex.get(2), hex.get(3), sqr.get(1))) {
+			xy.y --;
+		} else if (inTriangle(position, hex.get(3), hex.get(4), sqr.get(2))) {
+			xy.y --;
+		} else if (inTriangle(position, hex.get(5), hex.get(0), sqr.get(3))) {
+			xy.y ++;
+		}
+
+		Log.d(">>>>", "final: " + xy.x + ", " + xy.y);
+
+		return xy;
+	}
+
+	/**
+	 * Counts center coordinates of hexagon defined by x,y index
+	 *
+	 * @param xy
+	 * @return
+	 */
+	public static LatLng getSectorCenter(XY xy) {
+		return getSectorCenter(xy.x, xy.y);
+	}
+
+	/**
+	 * Counts center coordinates of hexagon defined by x,y index
+	 *
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public static LatLng getSectorCenter(int x, int y) {
+		final boolean odd = ((y % 2) == 0);
+
+		double centerLat = (y * (Constants.SECTOR_HEIGHT - Constants.SECTOR_HEIGHT_CROP)) + (Constants.SECTOR_HEIGHT / 2);
+		double centerLon = (x * Constants.SECTOR_WIDTH);
+		if (odd) {
+			centerLon += Constants.SECTOR_WIDTH;
+		} else {
+			centerLon += (Constants.SECTOR_WIDTH / 2);
+		}
 
 		return new LatLng(centerLat, centerLon);
 	}
 
-	public static ArrayList<LatLng> getSectorCorners(LatLng center) {
+	/**
+	 * Returns array of corners of hexagon defined by its center
+	 *
+	 * @param center
+	 * @return
+	 */
+	public static ArrayList<LatLng> getSectorHexagon(LatLng center) {
 		final ArrayList<LatLng> corners = new ArrayList<LatLng>();
+
+		for (int i = 1; i <=6; i ++) {
+			corners.add(getHexagonCorner(center, i));
+		}
+
+		return corners;
+	}
+
+	/**
+	 * Returns array of corners of hexagon defined by its center
+	 *
+	 * @param center
+	 * @return
+	 */
+	public static ArrayList<LatLng> getSectorSquare(LatLng center) {
+		final ArrayList<LatLng> corners = new ArrayList<LatLng>();
+
+		for (int i = 1; i <=4; i ++) {
+			corners.add(getSquareCorner(center, i));
+		}
+
+		return corners;
+	}
+
+	/**
+	 * Returns coordinates of points 1 to 6 of hexagon defined by its center
+	 *
+	 * @param center
+	 * @param cnt
+	 * @return
+	 */
+	public static LatLng getHexagonCorner(LatLng center, int cnt) {
+		cnt = cnt -1; // 0..5
 
 		double lat;
 		double lon;
 
-		lat = center.latitude;
-		lon = center.longitude + (Constants.SECTOR_WIDTH / 2.0);
-		corners.add(new LatLng(lat, lon));
+		switch (cnt) {
+			case 0:
+				lat = center.latitude + (Constants.SECTOR_HEIGHT / 2.0);
+				lon = center.longitude;
+				return new LatLng(lat, lon);
+			case 1:
+				lat = center.latitude + Constants.SECTOR_HEIGHT_CROP;
+				lon = center.longitude + (Constants.SECTOR_WIDTH / 2.0);
+				return new LatLng(lat, lon);
+			case 2:
+				lat = center.latitude - Constants.SECTOR_HEIGHT_CROP;
+				lon = center.longitude + (Constants.SECTOR_WIDTH / 2.0);
+				return new LatLng(lat, lon);
+			case 3:
+				lat = center.latitude - (Constants.SECTOR_HEIGHT / 2.0);
+				lon = center.longitude;
+				return new LatLng(lat, lon);
+			case 4:
+				lat = center.latitude - Constants.SECTOR_HEIGHT_CROP;
+				lon = center.longitude - (Constants.SECTOR_WIDTH / 2.0);
+				return new LatLng(lat, lon);
+			case 5:
+				lat = center.latitude + Constants.SECTOR_HEIGHT_CROP;
+				lon = center.longitude - (Constants.SECTOR_WIDTH / 2.0);
+				return new LatLng(lat, lon);
+			default:
+				return null;
+		}
+	}
 
-		lat = center.latitude - (Constants.SECTOR_HEIGHT / 2.0);
-		lon = center.longitude + (Constants.SECTOR_WIDTH / 4.5);
-		corners.add(new LatLng(lat, lon));
+	/**
+	 * Returns coordinates of points 1 to 4 of square defined by its center
+	 *
+	 * @param center
+	 * @param cnt
+	 * @return
+	 */
+	public static LatLng getSquareCorner(LatLng center, int cnt) {
+		cnt = cnt -1; // 0..3
 
-		lat = center.latitude - (Constants.SECTOR_HEIGHT / 2.0);
-		lon = center.longitude - (Constants.SECTOR_WIDTH / 4.5);
-		corners.add(new LatLng(lat, lon));
+		double lat;
+		double lon;
 
-		lat = center.latitude;
-		lon = center.longitude - (Constants.SECTOR_WIDTH / 2.0);
-		corners.add(new LatLng(lat, lon));
+		switch (cnt) {
+			case 0:
+				lat = center.latitude + (Constants.SECTOR_HEIGHT / 2.0);
+				lon = center.longitude + (Constants.SECTOR_WIDTH / 2.0);
+				return new LatLng(lat, lon);
+			case 1:
+				lat = center.latitude - (Constants.SECTOR_HEIGHT / 2.0);
+				lon = center.longitude + (Constants.SECTOR_WIDTH / 2.0);
+				return new LatLng(lat, lon);
+			case 2:
+				lat = center.latitude - (Constants.SECTOR_HEIGHT / 2.0);
+				lon = center.longitude - (Constants.SECTOR_WIDTH / 2.0);
+				return new LatLng(lat, lon);
+			case 3:
+				lat = center.latitude + (Constants.SECTOR_HEIGHT / 2.0);
+				lon = center.longitude - (Constants.SECTOR_WIDTH / 2.0);
+				return new LatLng(lat, lon);
+			default:
+				return null;
+		}
+	}
 
-		lat = center.latitude + (Constants.SECTOR_HEIGHT / 2.0);
-		lon = center.longitude - (Constants.SECTOR_WIDTH / 4.5);
-		corners.add(new LatLng(lat, lon));
+	/**
+	 * Check if point is inside of triangle
+	 * source: http://stackoverflow.com/questions/2464902/determine-if-a-point-is-inside-a-triangle-formed-by-3-points-with-given-latitude
+	 *
+	 * @param point
+	 * @param x1
+	 * @param x2
+	 * @param x3
+	 * @return
+	 */
+	public static boolean inTriangle(LatLng point, LatLng x1, LatLng x2, LatLng x3) {
+		double o1 = getOrientationResult(x1.longitude, x1.latitude, x2.longitude, x2.latitude, point.longitude, point.latitude);
+		double o2 = getOrientationResult(x2.longitude, x2.latitude, x3.longitude, x3.latitude, point.longitude, point.latitude);
+		double o3 = getOrientationResult(x3.longitude, x3.latitude, x1.longitude, x1.latitude, point.longitude, point.latitude);
 
-		lat = center.latitude + (Constants.SECTOR_HEIGHT / 2.0);
-		lon = center.longitude + (Constants.SECTOR_WIDTH / 4.5);
-		corners.add(new LatLng(lat, lon));
+		Log.d(">>>>", "orientation: " + o1 + ", " + o2 + ", " + o3);
 
-		return corners;
+		return (o1 == o2) && (o2 == o3);
+	}
+
+	private static int getOrientationResult(double x1, double y1, double x2, double y2, double px, double py) {
+		final double orientation = ((x2 - x1) * (py - y1)) - ((px - x1) * (y2 - y1));
+
+		if (orientation > 0) {
+			return 1;
+		} else if (orientation < 0) {
+			return -1;
+		} else {
+			return 0;
+		}
 	}
 
 	/**

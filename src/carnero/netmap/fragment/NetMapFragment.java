@@ -20,6 +20,7 @@ import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
 import carnero.netmap.model.CoverageSector;
+import carnero.netmap.model.XY;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
