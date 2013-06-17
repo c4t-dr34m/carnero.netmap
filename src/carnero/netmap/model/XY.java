@@ -13,4 +13,18 @@ public class XY {
 		this.x = x;
 		this.y = y;
 	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (this == object) {
+			return true;
+		}
+		if (!(object instanceof XY)) {
+			return false;
+		}
+
+		final XY xy = (XY) object;
+
+		return (xy.x == x && xy.y == y);
+	}
 }
