@@ -17,10 +17,7 @@ import carnero.netmap.App;
 import carnero.netmap.R;
 import carnero.netmap.common.*;
 import carnero.netmap.listener.OnLocationObtainedListener;
-import carnero.netmap.model.Bts;
-import carnero.netmap.model.BtsCache;
-import carnero.netmap.model.CoverageSector;
-import carnero.netmap.model.XY;
+import carnero.netmap.model.*;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
@@ -38,9 +35,9 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	private Bts mLastBts;
 	private Marker mMyMarker;
 	private Polyline mConnectionCurrent;
-	private Polygon mCoverage;
 	private int[] mFillColors = new int[5];
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
+	private HashMap<XY, Polygon> mCoveragePolygons = new HashMap<XY, Polygon>();
 	private LocationListener mLocationListener = new LocationListener();
 	private float mZoomDefault = 16f;
 	final private StatusListener mListener = new StatusListener();
@@ -149,19 +146,29 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 		}
 
 		// coverage
-		final CoverageSector sector = new CoverageSector(mLastLocation, Util.getNetworkLevel(mLastBts.type));
+		final XY index = LocationUtil.getSectorXY(mLastLocation);
 		final int level = Util.getNetworkLevel(mLastBts.type);
-		final int fill = mFillColors[level - 1];
+		final boolean changed = CoverageCache.changed(index, level);
 
-		final PolygonOptions polygonOpts = new PolygonOptions();
-		polygonOpts.strokeWidth(0);
-		polygonOpts.fillColor(fill);
-		polygonOpts.addAll(sector.corners);
+		if (changed) {
+			final CoverageSector sector = CoverageCache.get(index, level);
+			final int fill = mFillColors[level - 1];
 
-		if (mCoverage != null) {
-			mCoverage.remove();
+			if (mCoveragePolygons.containsKey(sector.index)) {
+				mCoveragePolygons.get(sector.index).remove();
+
+				Log.i(Constants.TAG, "Replacing sector " + sector.index.toString());
+			} else {
+				Log.i(Constants.TAG, "Adding sector " + sector.index.toString());
+			}
+
+			final PolygonOptions polygonOpts = new PolygonOptions();
+			polygonOpts.strokeWidth(0);
+			polygonOpts.fillColor(fill);
+			polygonOpts.addAll(sector.corners);
+
+			mCoveragePolygons.put(sector.index, mMap.addPolygon(polygonOpts));
 		}
-		mCoverage = mMap.addPolygon(polygonOpts);
 
 		// connection
 		if (mConnectionCurrent == null) {
@@ -227,8 +234,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 			}
 
 			mLastBts = bts;
-
-			Log.d(Constants.TAG, "Location obtained: " + bts.lac + ":" + bts.cid + ", type " + bts.type);
 
 			final String id = Bts.getId(bts);
 			final int level = Util.getNetworkLevel(bts.type);

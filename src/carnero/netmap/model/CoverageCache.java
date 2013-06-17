@@ -16,6 +16,16 @@ public class CoverageCache {
 		}
 	}
 
+	public static boolean changed(XY index, int type) {
+		synchronized (mCache) {
+			if (mCache.containsKey(index) && mCache.get(index).type == type) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+	}
+
 	public static CoverageSector get(XY index, int type) {
 		if (mCache.containsKey(index)) {
 			final CoverageSector sector = mCache.get(index);
@@ -33,14 +43,5 @@ public class CoverageCache {
 
 			return sector;
 		}
-	}
-
-	public static List<CoverageSector> getAll() {
-		final ArrayList<CoverageSector> list = new ArrayList<CoverageSector>();
-		for (XY key : mCache.keySet()) {
-			list.add(mCache.get(key));
-		}
-
-		return list;
 	}
 }

@@ -1,6 +1,5 @@
 package carnero.netmap.common;
 
-import android.util.Log;
 import carnero.netmap.model.XY;
 import com.google.android.gms.maps.model.LatLng;
 import java.util.ArrayList;

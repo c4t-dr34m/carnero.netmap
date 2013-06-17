@@ -27,4 +27,16 @@ public class XY {
 
 		return (xy.x == x && xy.y == y);
 	}
+
+	@Override
+	public int hashCode() {
+		int code = (x << 16) + y;
+
+		return code;
+	}
+
+	@Override
+	public String toString() {
+		return "Sector [" + x + ":" + y + "]";
+	}
 }

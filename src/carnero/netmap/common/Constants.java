@@ -8,8 +8,8 @@ public class Constants {
 	public static final String URL_BASE_GSMWEB = "http://gsmweb.cz/search.php?par=hex&op=all&razeni=original&smer=vzestupne&udaj=";
 
 	// geolocation config
-	public static final int GEO_DISTANCE = 15; // 15 m
-	public static final long GEO_TIME = 30000l; // 30 sec
+	public static final int GEO_DISTANCE = 10; // 10 m
+	public static final long GEO_TIME = 5000l; // 5 sec
 
 	// BTS circle sections
 	public static final double SECTOR_WIDTH = 0.0020; // longitude
