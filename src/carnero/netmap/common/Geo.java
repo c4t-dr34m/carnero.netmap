@@ -26,12 +26,12 @@ public class Geo {
 		loadLastLoc();
 
 		List<String> providers = mManager.getAllProviders();
-		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
-			mListener.provider = LocationManager.NETWORK_PROVIDER;
-			mManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
+		if (providers.contains(LocationManager.GPS_PROVIDER)) {
+			mListener.provider = LocationManager.GPS_PROVIDER;
+			mManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
 		} else if (providers.contains(LocationManager.PASSIVE_PROVIDER)) {
 			mListener.provider = LocationManager.PASSIVE_PROVIDER;
-			mManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
+			mManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
 		} else {
 			Log.e(Constants.TAG, "Neither NETWORK nor PASSIVE provider available.");
 		}
@@ -48,6 +48,10 @@ public class Geo {
 	public void removeReceiver(SimpleGeoReceiver receiver) {
 		if (mReceivers.contains(receiver)) {
 			mReceivers.remove(receiver);
+		}
+
+		if (mReceivers.isEmpty()) {
+			release();
 		}
 	}
 

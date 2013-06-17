@@ -19,7 +19,7 @@ public class LocationUtil {
 		xy.y = (int) Math.floor(position.latitude / (Constants.SECTOR_HEIGHT - Constants.SECTOR_HEIGHT_CROP));
 
 		if ((xy.y % 2) == 0) {
-			xy.x = (int) Math.floor((position.longitude + (Constants.SECTOR_WIDTH / 2)) / Constants.SECTOR_WIDTH);
+			xy.x = (int) Math.floor((position.longitude - (Constants.SECTOR_WIDTH / 2)) / Constants.SECTOR_WIDTH);
 		} else {
 			xy.x = (int) Math.floor(position.longitude / Constants.SECTOR_WIDTH);
 		}
@@ -27,8 +27,6 @@ public class LocationUtil {
 		final LatLng center = getSectorCenter(xy);
 		final ArrayList<LatLng> hex = getSectorHexagon(center);
 		final ArrayList<LatLng> sqr = getSectorSquare(center);
-
-		Log.d(">>>>", "raw: " + xy.x + ", " + xy.y);
 
 		if (inTriangle(position, hex.get(0), hex.get(1), sqr.get(0))) {
 			xy.y ++;
@@ -39,8 +37,6 @@ public class LocationUtil {
 		} else if (inTriangle(position, hex.get(5), hex.get(0), sqr.get(3))) {
 			xy.y ++;
 		}
-
-		Log.d(">>>>", "final: " + xy.x + ", " + xy.y);
 
 		return xy;
 	}
@@ -200,8 +196,6 @@ public class LocationUtil {
 		double o1 = getOrientationResult(x1.longitude, x1.latitude, x2.longitude, x2.latitude, point.longitude, point.latitude);
 		double o2 = getOrientationResult(x2.longitude, x2.latitude, x3.longitude, x3.latitude, point.longitude, point.latitude);
 		double o3 = getOrientationResult(x3.longitude, x3.latitude, x1.longitude, x1.latitude, point.longitude, point.latitude);
-
-		Log.d(">>>>", "orientation: " + o1 + ", " + o2 + ", " + o3);
 
 		return (o1 == o2) && (o2 == o3);
 	}
