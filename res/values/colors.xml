@@ -3,6 +3,7 @@
 	<!-- basic -->
 	<color name="white">@android:color/white</color>
 	<color name="black">@android:color/black</color>
+	<color name="none">@android:color/transparent</color>
 	<!-- transparent -->
 	<color name="black_transparent">#88000000</color>
 	<!-- connection -->

@@ -163,7 +163,8 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 			}
 
 			final PolygonOptions polygonOpts = new PolygonOptions();
-			polygonOpts.strokeWidth(0);
+			polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
+			polygonOpts.strokeColor(getResources().getColor(R.color.none)); // hopefully this makes margin
 			polygonOpts.fillColor(fill);
 			polygonOpts.addAll(sector.corners);
 
