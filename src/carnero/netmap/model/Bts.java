@@ -12,7 +12,9 @@ public class Bts {
 	public String operator;
 	public int type;
 	public LatLng location;
-	//
+	// status
+	public boolean locationNA = false;
+	// internal status
 	private boolean mLoading = false;
 
 	public Bts(int lac, int cid, int type) {
@@ -43,7 +45,7 @@ public class Bts {
 			return;
 		}
 
-		if (!mLoading) {
+		if (!mLoading && !locationNA) {
 			new BtsLocationDownloader(this, listener).execute();
 		}
 	}

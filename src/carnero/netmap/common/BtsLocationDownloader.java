@@ -107,6 +107,7 @@ public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
 			}
 
 			if (TextUtils.isEmpty(link)) {
+				mBts.locationNA = true;
 				return null;
 			}
 
@@ -121,6 +122,7 @@ public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
 			}
 		}
 
+		mBts.locationNA = true;
 		return null;
 	}
 
