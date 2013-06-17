@@ -24,7 +24,7 @@ public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
 	private Bts mBts;
 	private OnLocationObtainedListener mListener;
 	// consts
-	private final Pattern locationPattern = Pattern.compile("<tr><td>([0-9]+)</td><td>[^<]*</td><td>([0-9]+)</td>(<td[^>]*>[^<]*</td>){5}<td><A HREF=\"([^\"]+)\"[^>]*>[^<]+</A>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private final Pattern locationPattern = Pattern.compile("<tr><td>([0-9]+)</td><td>[^<]*</td><td>([0-9]+)</td>(<td[^>]*>.*</td>){5}<td><A HREF=\"([^\"]+)\"[^>]*>[^<]+</A>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	private final Pattern linkPattern = Pattern.compile("d=coor_([0-9\\.]+),([0-9\\.]+)_[0-9]+", Pattern.CASE_INSENSITIVE);
 
 	public BtsLocationDownloader(Bts bts, OnLocationObtainedListener listener) {

@@ -1,5 +1,6 @@
 package carnero.netmap.model;
 
+import android.util.Log;
 import carnero.netmap.common.BtsLocationDownloader;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import com.google.android.gms.maps.model.LatLng;

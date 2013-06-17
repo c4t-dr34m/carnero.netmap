@@ -35,12 +35,6 @@ public class BtsCache {
 			final Bts bts = new Bts(lac, cid, type);
 			add(bts);
 
-			int lvlOld = Util.getNetworkLevel(bts.type);
-			int lvlNew = Util.getNetworkLevel(type);
-			if (lvlNew > lvlOld) {
-				bts.type = type;
-			}
-
 			return bts;
 		}
 	}
