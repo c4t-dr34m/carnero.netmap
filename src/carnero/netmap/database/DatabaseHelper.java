@@ -16,11 +16,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
+		db.execSQL(DatabaseStructure.SQL.createBts());
+		db.execSQL(DatabaseStructure.SQL.createCoverage());
 
+		String[] indexes;
+
+		indexes = DatabaseStructure.SQL.createBtsIndexes();
+		for (String index : indexes) {
+			db.execSQL(index);
+		}
+
+		indexes = DatabaseStructure.SQL.createCoverageIndexes();
+		for (String index : indexes) {
+			db.execSQL(index);
+		}
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int versionOld, int versionNew) {
+		try {
+			db.beginTransaction();
 
+			db.execSQL("drop table if exists " + DatabaseStructure.TABLE_BTS);
+			db.execSQL("drop table if exists " + DatabaseStructure.TABLE_COVERAGE);
+
+			onCreate(db);
+
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+		}
 	}
 }
