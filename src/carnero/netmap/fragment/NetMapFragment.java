@@ -148,10 +148,10 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 		// coverage
 		final XY index = LocationUtil.getSectorXY(mLastLocation);
 		final int level = Util.getNetworkLevel(mLastBts.type);
-		final boolean changed = CoverageCache.changed(index, level);
+		final boolean changed = SectorCache.changed(index, level);
 
 		if (changed) {
-			final CoverageSector sector = CoverageCache.get(index, level);
+			final Sector sector = SectorCache.get(index, level);
 			final int fill = mFillColors[level - 1];
 
 			if (mCoveragePolygons.containsKey(sector.index)) {

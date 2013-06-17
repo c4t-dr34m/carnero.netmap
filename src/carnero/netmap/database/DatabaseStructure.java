@@ -2,8 +2,38 @@ package carnero.netmap.database;
 
 public class DatabaseStructure {
 
-	public static final String TABLE_BTS = "bts";
-	public static final String TABLE_COVERAGE = "coverage";
+	public static class TABLE {
+
+		public static final String BTS = "bts";
+		public static final String SECTOR = "secotr";
+	}
+
+	public static class PROJECTION {
+
+		public static final String[] BTS = new String[] {COLUMNS_BTS.OPERATOR, COLUMNS_BTS.LAC, COLUMNS_BTS.CID, COLUMNS_BTS.LATITUDE, COLUMNS_BTS.LONGITUDE};
+		public static final String[] SECTOR = new String[] {COLUMNS_SECTORS.X, COLUMNS_SECTORS.Y, COLUMNS_SECTORS.TYPE, COLUMNS_SECTORS.SIGNAL_AVERAGE, COLUMNS_SECTORS.SIGNAL_COUNT};
+	}
+
+	public static class COLUMNS_BTS {
+
+		public static final String ID = "_id"; // integer
+		public static final String OPERATOR = "operator"; // string
+		public static final String LAC = "lac"; // long
+		public static final String CID = "cid"; // long
+		public static final String TYPE = "type"; // integer
+		public static final String LATITUDE = "latitude"; // double
+		public static final String LONGITUDE = "longitude"; // double
+	}
+
+	public static class COLUMNS_SECTORS {
+
+		public static final String ID = "_id"; // integer
+		public static final String X = "index_x"; // integer
+		public static final String Y = "index_y"; // integer
+		public static final String TYPE = "type"; // integer
+		public static final String SIGNAL_AVERAGE = "signal_avg"; // double
+		public static final String SIGNAL_COUNT = "signal_cnt"; // integer
+	}
 
 	public static class SQL {
 
@@ -11,15 +41,22 @@ public class DatabaseStructure {
 			final StringBuilder sql = new StringBuilder();
 
 			sql.append("create table ");
-			sql.append(TABLE_BTS);
+			sql.append(TABLE.BTS);
 			sql.append(" (");
-			sql.append("_id integer primary key autoincrement, ");
-			sql.append("operator text not null, ");
-			sql.append("lac long not null, ");
-			sql.append("cid long not null, ");
-			sql.append("type integer default 0, ");
-			sql.append("latitude double not null, ");
-			sql.append("longitude double not null");
+			sql.append(COLUMNS_BTS.ID);
+			sql.append(" integer primary key autoincrement, ");
+			sql.append(COLUMNS_BTS.OPERATOR);
+			sql.append(" text not null, ");
+			sql.append(COLUMNS_BTS.LAC);
+			sql.append(" long not null, ");
+			sql.append(COLUMNS_BTS.CID);
+			sql.append(" long not null, ");
+			sql.append(COLUMNS_BTS.TYPE);
+			sql.append(" integer default 0, ");
+			sql.append(COLUMNS_BTS.LATITUDE);
+			sql.append(" double not null, ");
+			sql.append(COLUMNS_BTS.LONGITUDE);
+			sql.append(" double not null");
 			sql.append(");");
 
 			return sql.toString();
@@ -27,30 +64,36 @@ public class DatabaseStructure {
 
 		public static final String[] createBtsIndexes() {
 			return new String[] {
-					"create index if not exists idx_id on " + TABLE_BTS + " (operator, lac, cid)",
+					"create index if not exists idx_id on " + TABLE.BTS + " (operator, lac, cid)",
 			};
 		}
 
-		public static final String createCoverage() {
+		public static final String createSector() {
 			final StringBuilder sql = new StringBuilder();
 
 			sql.append("create table ");
-			sql.append(TABLE_COVERAGE);
+			sql.append(TABLE.SECTOR);
 			sql.append(" (");
-			sql.append("_id integer primary key autoincrement, ");
-			sql.append("index_x integer not null, ");
-			sql.append("index_y integer not null, ");
-			sql.append("type integer default 0, ");
-			sql.append("signal_avg double default 0, ");
-			sql.append("signal_cnt integer default 0");
+			sql.append(COLUMNS_SECTORS.ID);
+			sql.append(" integer primary key autoincrement, ");
+			sql.append(COLUMNS_SECTORS.X);
+			sql.append(" integer not null, ");
+			sql.append(COLUMNS_SECTORS.Y);
+			sql.append(" integer not null, ");
+			sql.append(COLUMNS_SECTORS.TYPE);
+			sql.append(" integer default 0, ");
+			sql.append(COLUMNS_SECTORS.SIGNAL_AVERAGE);
+			sql.append(" double default 0, ");
+			sql.append(COLUMNS_SECTORS.SIGNAL_COUNT);
+			sql.append(" integer default 0");
 			sql.append(");");
 
 			return sql.toString();
 		}
 
-		public static final String[] createCoverageIndexes() {
+		public static final String[] createSectorIndexes() {
 			return new String[] {
-					"create index if not exists idx_index on " + TABLE_COVERAGE + " (index_x, index_y)",
+					"create index if not exists idx_index on " + TABLE.SECTOR + " (index_x, index_y)",
 			};
 		}
 	}

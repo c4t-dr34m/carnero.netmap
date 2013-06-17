@@ -2,15 +2,13 @@ package carnero.netmap.model;
 
 import carnero.netmap.common.Util;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-public class CoverageCache {
+public class SectorCache {
 
-	private static final HashMap<XY, CoverageSector> mCache = new HashMap<XY, CoverageSector>();
+	private static final HashMap<XY, Sector> mCache = new HashMap<XY, Sector>();
 
-	public static void add(CoverageSector sector) {
+	public static void add(Sector sector) {
 		synchronized (mCache) {
 			mCache.put(sector.index, sector);
 		}
@@ -26,9 +24,9 @@ public class CoverageCache {
 		}
 	}
 
-	public static CoverageSector get(XY index, int type) {
+	public static Sector get(XY index, int type) {
 		if (mCache.containsKey(index)) {
-			final CoverageSector sector = mCache.get(index);
+			final Sector sector = mCache.get(index);
 
 			int lvlOld = Util.getNetworkLevel(sector.type);
 			int lvlNew = Util.getNetworkLevel(type);
@@ -38,7 +36,7 @@ public class CoverageCache {
 
 			return sector;
 		} else {
-			final CoverageSector sector = new CoverageSector(index, type);
+			final Sector sector = new Sector(index, type);
 			add(sector);
 
 			return sector;

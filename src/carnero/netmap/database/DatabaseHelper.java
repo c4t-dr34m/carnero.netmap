@@ -17,7 +17,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL(DatabaseStructure.SQL.createBts());
-		db.execSQL(DatabaseStructure.SQL.createCoverage());
+		db.execSQL(DatabaseStructure.SQL.createSector());
 
 		String[] indexes;
 
@@ -26,7 +26,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			db.execSQL(index);
 		}
 
-		indexes = DatabaseStructure.SQL.createCoverageIndexes();
+		indexes = DatabaseStructure.SQL.createSectorIndexes();
 		for (String index : indexes) {
 			db.execSQL(index);
 		}
@@ -37,8 +37,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		try {
 			db.beginTransaction();
 
-			db.execSQL("drop table if exists " + DatabaseStructure.TABLE_BTS);
-			db.execSQL("drop table if exists " + DatabaseStructure.TABLE_COVERAGE);
+			db.execSQL("drop table if exists " + DatabaseStructure.TABLE.BTS);
+			db.execSQL("drop table if exists " + DatabaseStructure.TABLE.SECTOR);
 
 			onCreate(db);
 

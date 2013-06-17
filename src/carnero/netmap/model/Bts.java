@@ -1,5 +1,6 @@
 package carnero.netmap.model;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import carnero.netmap.common.BtsLocationDownloader;
 import carnero.netmap.listener.OnLocationObtainedListener;
@@ -7,8 +8,8 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class Bts {
 
-	public int lac;
-	public int cid;
+	public long lac;
+	public long cid;
 	public String operator;
 	public int type;
 	public LatLng location;
@@ -16,6 +17,10 @@ public class Bts {
 	public boolean locationNA = false;
 	// internal status
 	private boolean mLoading = false;
+
+	public Bts() {
+		// empty
+	}
 
 	public Bts(int lac, int cid, int type) {
 		this.lac = lac;
@@ -27,11 +32,11 @@ public class Bts {
 		return getId(bts.lac, bts.cid);
 	}
 
-	public static String getId(int lac, int cid) {
+	public static String getId(long lac, long cid) {
 		final StringBuilder sb = new StringBuilder();
-		sb.append(Integer.toString(lac));
+		sb.append(Long.toString(lac));
 		sb.append(":");
-		sb.append(Integer.toString(cid));
+		sb.append(Long.toString(cid));
 
 		return sb.toString();
 	}
