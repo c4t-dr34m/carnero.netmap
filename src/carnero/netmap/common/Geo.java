@@ -23,23 +23,14 @@ public class Geo {
 	public Geo(Context context) {
 		mManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
-		loadLastLoc();
-
-		List<String> providers = mManager.getAllProviders();
-		if (providers.contains(LocationManager.GPS_PROVIDER)) {
-			mListener.provider = LocationManager.GPS_PROVIDER;
-			mManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
-		} else if (providers.contains(LocationManager.PASSIVE_PROVIDER)) {
-			mListener.provider = LocationManager.PASSIVE_PROVIDER;
-			mManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
-		} else {
-			Log.e(Constants.TAG, "Neither NETWORK nor PASSIVE provider available.");
-		}
-
-		Log.i(Constants.TAG, "Geolocation initialized");
+		init();
 	}
 
 	public void addReceiver(SimpleGeoReceiver receiver) {
+		if (mReceivers.isEmpty()) {
+			init();
+		}
+
 		mReceivers.add(receiver);
 
 		if (mLastLocation != null) {
@@ -55,6 +46,26 @@ public class Geo {
 		if (mReceivers.isEmpty()) {
 			release();
 		}
+	}
+
+	/**
+	 * Initialize service
+	 */
+	private void init() {
+		loadLastLoc();
+
+		List<String> providers = mManager.getAllProviders();
+		if (providers.contains(LocationManager.GPS_PROVIDER)) {
+			mListener.provider = LocationManager.GPS_PROVIDER;
+			mManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
+		} else if (providers.contains(LocationManager.PASSIVE_PROVIDER)) {
+			mListener.provider = LocationManager.PASSIVE_PROVIDER;
+			mManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
+		} else {
+			Log.e(Constants.TAG, "Neither NETWORK nor PASSIVE provider available.");
+		}
+
+		Log.i(Constants.TAG, "Geolocation initialized");
 	}
 
 	/**
