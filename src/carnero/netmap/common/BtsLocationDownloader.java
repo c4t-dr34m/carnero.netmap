@@ -3,6 +3,7 @@ package carnero.netmap.common;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
+import carnero.netmap.App;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import com.google.android.gms.maps.model.LatLng;
@@ -37,7 +38,7 @@ public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
 	}
 
 	public LatLng doInBackground(Void... params) {
-		final String url = Constants.URL_BASE_GSMWEB + Integer.toHexString(mBts.cid).toUpperCase();
+		final String url = Constants.URL_BASE_GSMWEB + Long.toHexString(mBts.cid).toUpperCase();
 		String data = null;
 
 		try {

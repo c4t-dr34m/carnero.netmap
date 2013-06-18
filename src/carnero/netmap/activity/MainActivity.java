@@ -3,6 +3,7 @@ package carnero.netmap.activity;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -18,13 +19,15 @@ import android.view.View;
 import android.widget.TextView;
 import carnero.netmap.App;
 import carnero.netmap.R;
-import carnero.netmap.common.BtsLocationDownloader;
-import carnero.netmap.common.Constants;
-import carnero.netmap.common.Geo;
-import carnero.netmap.common.SimpleGeoReceiver;
+import carnero.netmap.common.*;
+import carnero.netmap.database.BtsDb;
+import carnero.netmap.database.SectorDb;
 import carnero.netmap.fragment.NetMapFragment;
+import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
+import carnero.netmap.model.Sector;
+import carnero.netmap.model.SectorCache;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -41,6 +44,7 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 	private TextView mLocationView;
 	private TextView mNetworkView;
 	final private StatusListener mListener = new StatusListener();
+	final private LocationListener mLocationListener = new LocationListener();
 
 	@Override
 	public void onCreate(Bundle state) {
@@ -84,41 +88,51 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 	}
 
 	public void onLocationChanged(Location location) {
-		getNetworkInfo();
+		getNetworkInfo(null, location);
 	}
 
 	public void getNetworkInfo() {
-		getNetworkInfo(null);
+		getNetworkInfo(null, null);
 	}
 
-	public void getNetworkInfo(CellLocation cell) {
+	public void getNetworkInfo(CellLocation cell, Location location) {
 		if (mWiFi == null) {
 			mWiFi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 		}
 
-		// long time = System.currentTimeMillis();
-		// int wifi = mWiFi.getWifiState();
-		String operator = mTelephony.getNetworkOperator();
-		String opName = mTelephony.getNetworkOperatorName();
-		// boolean roaming = mTelephony.isNetworkRoaming();
-		// int data = mTelephony.getDataState();
-		int type = mTelephony.getNetworkType();
+		// final long time = System.currentTimeMillis();
+		// final int wifi = mWiFi.getWifiState();
+		final String operator = mTelephony.getNetworkOperator();
+		final String opName = mTelephony.getNetworkOperatorName();
+		// final boolean roaming = mTelephony.isNetworkRoaming();
+		// final int data = mTelephony.getDataState();
+		final int type = mTelephony.getNetworkType();
 
 		if (cell == null) {
 			cell = mTelephony.getCellLocation();
 		}
 
+		if (location != null) {
+			final LatLng position = new LatLng(location.getLatitude(), location.getLongitude());
+			final Sector sector = SectorCache.get(LocationUtil.getSectorXY(position), type);
+			SectorDb.save(((App) getApplication()).getDatabase(), sector);
+		}
+
 		mOperatorView.setText(opName);
 		mNetworkView.setText(mNetworkTypes[type]);
 		if (cell instanceof GsmCellLocation) {
-			GsmCellLocation gsmCell = (GsmCellLocation) cell;
+			final GsmCellLocation gsmCell = (GsmCellLocation) cell;
+			final Bts bts = BtsCache.get(operator, gsmCell.getLac(), gsmCell.getCid(), type);
+
 			StringBuilder sb = new StringBuilder();
-			sb.append(Integer.toString(gsmCell.getLac()));
+			sb.append(Long.toString(bts.lac));
 			sb.append(":");
-			sb.append(Integer.toHexString(gsmCell.getCid()).toUpperCase());
+			sb.append(Long.toHexString(bts.cid).toUpperCase());
 
 			mLocationView.setText(sb.toString());
 			mLocationView.setOnClickListener(new BtsClickListener(gsmCell.getCid()));
+
+			bts.getLocation(mLocationListener);
 		} else if (cell instanceof CdmaCellLocation) {
 			Log.w(Constants.TAG, "CDMA location not implemented");
 		}
@@ -130,7 +144,7 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 
 		@Override
 		public void onCellLocationChanged(CellLocation cell) {
-			getNetworkInfo(cell);
+			getNetworkInfo(cell, null);
 		}
 
 		@Override
@@ -141,6 +155,18 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 		@Override
 		public void onCellInfoChanged(List<CellInfo> info) {
 			getNetworkInfo();
+		}
+	}
+
+	private class LocationListener implements OnLocationObtainedListener {
+
+		public void onLocationObtained(Bts bts) {
+			if (bts.location == null) {
+				return;
+			}
+
+			BtsCache.add(bts);
+			BtsDb.save(((App) getApplication()).getDatabase(), bts);
 		}
 	}
 

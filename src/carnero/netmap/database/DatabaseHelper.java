@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
+	public SQLiteDatabase database;
 	// consts
 	public static final String DB_NAME = "carnero.netmap";
 	public static final int DB_VERSION = 1;
@@ -45,6 +46,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			db.setTransactionSuccessful();
 		} finally {
 			db.endTransaction();
+		}
+	}
+
+	public SQLiteDatabase getDatabase() {
+		if (database == null) {
+			init();
+		}
+
+		return database;
+	}
+
+	public void init() {
+		if (database == null) {
+			database = getWritableDatabase();
+
+			if (database.inTransaction()) {
+				database.endTransaction();
+			}
+		}
+	}
+
+	public void release() {
+		if (database != null) {
+			if (database.inTransaction()) {
+				database.endTransaction();
+			}
+
+			database.close();
+			database = null;
+
+			SQLiteDatabase.releaseMemory();
 		}
 	}
 }

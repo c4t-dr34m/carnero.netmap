@@ -1,45 +1,64 @@
 package carnero.netmap.model;
 
+import android.text.TextUtils;
 import carnero.netmap.common.Util;
+import carnero.netmap.listener.OnBtsCacheChangedListener;
+import carnero.netmap.listener.OnSectorCacheChangedListener;
 
-import java.util.HashMap;
+import java.util.*;
 
 public class SectorCache {
 
 	private static final HashMap<XY, Sector> mCache = new HashMap<XY, Sector>();
+	private static final ArrayList<OnSectorCacheChangedListener> mListeners = new ArrayList<OnSectorCacheChangedListener>();
+
+	public static void addListener(OnSectorCacheChangedListener listener) {
+		mListeners.add(listener);
+	}
+
+	public static void removeListener(OnSectorCacheChangedListener listener) {
+		if (mListeners.contains(listener)) {
+			mListeners.remove(listener);
+		}
+	}
 
 	public static void add(Sector sector) {
 		synchronized (mCache) {
 			mCache.put(sector.index, sector);
 		}
-	}
 
-	public static boolean changed(XY index, int type) {
-		synchronized (mCache) {
-			if (mCache.containsKey(index) && mCache.get(index).type == type) {
-				return false;
-			} else {
-				return true;
-			}
+		for (OnSectorCacheChangedListener listener : mListeners) {
+			listener.onSectorCacheChanged(sector);
 		}
 	}
 
 	public static Sector get(XY index, int type) {
-		if (mCache.containsKey(index)) {
-			final Sector sector = mCache.get(index);
-
-			int lvlOld = Util.getNetworkLevel(sector.type);
-			int lvlNew = Util.getNetworkLevel(type);
-			if (lvlNew > lvlOld) {
-				sector.type = type;
-			}
-
-			return sector;
-		} else {
-			final Sector sector = new Sector(index, type);
-			add(sector);
-
-			return sector;
+		if (index == null) {
+			return null;
 		}
+
+		Sector cached = mCache.get(index);
+
+		if (cached == null) {
+			cached = new Sector(index, type);
+			add(cached);
+		} else {
+			cached.type = Math.max(cached.type, type);
+		}
+
+		return cached;
+	}
+
+	public static List<Sector> getAll() {
+		final ArrayList<Sector> list = new ArrayList<Sector>();
+
+		synchronized (mCache) {
+			Set<Map.Entry<XY, Sector>> entries = mCache.entrySet();
+			for (Map.Entry entry : entries) {
+				list.add((Sector) entry.getValue());
+			}
+		}
+
+		return list;
 	}
 }

@@ -2,6 +2,7 @@ package carnero.netmap.fragment;
 
 import android.content.Context;
 import android.location.Location;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.telephony.CellInfo;
 import android.telephony.CellLocation;
@@ -16,7 +17,11 @@ import android.view.ViewGroup;
 import carnero.netmap.App;
 import carnero.netmap.R;
 import carnero.netmap.common.*;
+import carnero.netmap.database.BtsDb;
+import carnero.netmap.database.SectorDb;
+import carnero.netmap.listener.OnBtsCacheChangedListener;
 import carnero.netmap.listener.OnLocationObtainedListener;
+import carnero.netmap.listener.OnSectorCacheChangedListener;
 import carnero.netmap.model.*;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
@@ -25,7 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
+public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, OnBtsCacheChangedListener, OnSectorCacheChangedListener {
 
 	private Geo mGeo;
 	private GoogleMap mMap;
@@ -38,8 +43,8 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	private int[] mFillColors = new int[5];
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
 	private HashMap<XY, Polygon> mCoveragePolygons = new HashMap<XY, Polygon>();
-	private LocationListener mLocationListener = new LocationListener();
 	private float mZoomDefault = 16f;
+	//
 	final private StatusListener mListener = new StatusListener();
 
 	@Override
@@ -69,22 +74,36 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 
 		initializeMap();
 
-		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
+		SectorCache.addListener(this);
+		BtsCache.addListener(this);
 
 		mGeo = ((App) getActivity().getApplication()).getGeolocation();
 		mGeo.addReceiver(this);
+
+		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
 	}
 
 	@Override
 	public void onPause() {
+		mTelephony.listen(mListener, PhoneStateListener.LISTEN_NONE);
+
 		mGeo.removeReceiver(this);
 
-		mTelephony.listen(mListener, PhoneStateListener.LISTEN_NONE);
+		BtsCache.removeListener(this);
+		SectorCache.removeListener(this);
 
 		mMap.clear();
 		mMap = null;
 
 		super.onPause();
+	}
+
+	public void onBtsCacheChanged(Bts bts) {
+		addBts(bts);
+	}
+
+	public void onSectorCacheChanged(Sector sector) {
+		addSector(sector);
 	}
 
 	public void initializeMap() {
@@ -106,6 +125,18 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 			if (mMap.getMaxZoomLevel() < mZoomDefault) {
 				mZoomDefault = mMap.getMaxZoomLevel();
 			}
+		}
+
+		final List<Sector> sectors = SectorCache.getAll();
+		Log.d(Constants.TAG, "Loaded BTS count: " + sectors.size());
+		for (Sector sector : sectors) {
+			addSector(sector);
+		}
+
+		final List<Bts> btses = BtsCache.getAll();
+		Log.d(Constants.TAG, "Loaded sector count: " + btses.size());
+		for (Bts bts : btses) {
+			addBts(bts);
 		}
 	}
 
@@ -141,34 +172,8 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 	}
 
 	public void setConnection() {
-		if (mLastLocation == null || mLastBts == null) {
+		if (mLastLocation == null || mLastBts == null || mLastBts.location == null) {
 			return;
-		}
-
-		// coverage
-		final XY index = LocationUtil.getSectorXY(mLastLocation);
-		final int level = Util.getNetworkLevel(mLastBts.type);
-		final boolean changed = SectorCache.changed(index, level);
-
-		if (changed) {
-			final Sector sector = SectorCache.get(index, level);
-			final int fill = mFillColors[level - 1];
-
-			if (mCoveragePolygons.containsKey(sector.index)) {
-				mCoveragePolygons.get(sector.index).remove();
-
-				Log.i(Constants.TAG, "Replacing sector " + sector.index.toString());
-			} else {
-				Log.i(Constants.TAG, "Adding sector " + sector.index.toString());
-			}
-
-			final PolygonOptions polygonOpts = new PolygonOptions();
-			polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
-			polygonOpts.strokeColor(getResources().getColor(R.color.none)); // hopefully this makes margin
-			polygonOpts.fillColor(fill);
-			polygonOpts.addAll(sector.corners);
-
-			mCoveragePolygons.put(sector.index, mMap.addPolygon(polygonOpts));
 		}
 
 		// connection
@@ -189,28 +194,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 		}
 	}
 
-	public void getCellInfo() {
-		getCellInfo(null);
-	}
-
-	public void getCellInfo(CellLocation cell) {
-		if (cell == null) {
-			cell = mTelephony.getCellLocation();
-		}
-		final int type = mTelephony.getNetworkType();
-
-		if (cell instanceof GsmCellLocation) {
-			GsmCellLocation gsmCell = (GsmCellLocation) cell;
-
-			if (gsmCell.getLac() >= 0 && gsmCell.getCid() >= 0) {
-				final Bts bts = BtsCache.get(gsmCell.getLac(), gsmCell.getCid(), type);
-				bts.getLocation(mLocationListener);
-			}
-		} else if (cell instanceof CdmaCellLocation) {
-			Log.w(Constants.TAG, "CDMA location not implemented");
-		}
-	}
-
 	private void setMapTransparent(ViewGroup group) {
 		int cnt = group.getChildCount();
 
@@ -225,71 +208,102 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver {
 		}
 	}
 
-	// classes
-
-	private class LocationListener implements OnLocationObtainedListener {
-
-		public void onLocationObtained(Bts bts) {
-			if (mMap == null || bts.location == null) {
-				return;
-			}
-
-			mLastBts = bts;
-
-			final String id = Bts.getId(bts);
-			final int level = Util.getNetworkLevel(bts.type);
-
-			int pinResource;
-			switch (level) {
-				case Constants.NET_LEVEL_2:
-					pinResource = R.drawable.pin_level_2;
-					break;
-				case Constants.NET_LEVEL_3:
-					pinResource = R.drawable.pin_level_3;
-					break;
-				case Constants.NET_LEVEL_4:
-					pinResource = R.drawable.pin_level_4;
-					break;
-				case Constants.NET_LEVEL_5:
-					pinResource = R.drawable.pin_level_5;
-					break;
-				default:
-					pinResource = R.drawable.pin_level_1;
-			}
-
-			Marker marker = mBtsMarkers.get(id);
-			if (marker != null) {
-				marker.remove();
-			}
-
-			// current BTS marker
-			final MarkerOptions markerOpts = new MarkerOptions();
-			markerOpts.position(bts.location);
-			markerOpts.icon(BitmapDescriptorFactory.fromResource(pinResource));
-			markerOpts.anchor(0.5f, 1.0f);
-
-			marker = mMap.addMarker(markerOpts);
-			mBtsMarkers.put(id, marker);
-
-			setConnection();
+	private void addBts(Bts bts) {
+		if (bts.location == null) {
+			return;
 		}
+
+		final String id = Bts.getId(bts);
+		final int level = Util.getNetworkLevel(bts.type);
+
+		int pinResource;
+		switch (level) {
+			case Constants.NET_LEVEL_2:
+				pinResource = R.drawable.pin_level_2;
+				break;
+			case Constants.NET_LEVEL_3:
+				pinResource = R.drawable.pin_level_3;
+				break;
+			case Constants.NET_LEVEL_4:
+				pinResource = R.drawable.pin_level_4;
+				break;
+			case Constants.NET_LEVEL_5:
+				pinResource = R.drawable.pin_level_5;
+				break;
+			default:
+				pinResource = R.drawable.pin_level_1;
+		}
+
+		if (mBtsMarkers.containsKey(id)) {
+			mBtsMarkers.get(id).remove();
+		}
+
+		final MarkerOptions markerOpts = new MarkerOptions();
+		markerOpts.position(bts.location);
+		markerOpts.icon(BitmapDescriptorFactory.fromResource(pinResource));
+		markerOpts.anchor(0.5f, 1.0f);
+
+		mBtsMarkers.put(id, mMap.addMarker(markerOpts));
 	}
+
+	private void addSector(Sector sector) {
+		final int level = Util.getNetworkLevel(sector.type);
+		final int fill = mFillColors[level - 1];
+
+		if (mCoveragePolygons.containsKey(sector.index)) {
+			mCoveragePolygons.get(sector.index).remove();
+		}
+
+		final PolygonOptions polygonOpts = new PolygonOptions();
+		polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
+		polygonOpts.strokeColor(getResources().getColor(R.color.none)); // hopefully this makes margin
+		polygonOpts.fillColor(fill);
+		polygonOpts.addAll(sector.getCorners());
+
+		mCoveragePolygons.put(sector.index, mMap.addPolygon(polygonOpts));
+	}
+
+	public void getCurrentCellInfo() {
+		getCurrentCellInfo(null);
+	}
+
+	public void getCurrentCellInfo(CellLocation cell) {
+		final String operator = mTelephony.getNetworkOperator();
+		final int type = mTelephony.getNetworkType();
+
+		if (cell == null) {
+			cell = mTelephony.getCellLocation();
+		}
+
+		if (cell instanceof GsmCellLocation) {
+			final GsmCellLocation cellGsm = (GsmCellLocation) cell;
+
+			mLastBts = BtsCache.get(operator, cellGsm.getLac(), cellGsm.getCid(), type);
+		} else if (cell instanceof CdmaCellLocation) {
+			Log.w(Constants.TAG, "CDMA location not implemented");
+		}
+
+		setMyMarker();
+		setConnection();
+	}
+
+	// classes
 
 	public class StatusListener extends PhoneStateListener {
 
 		@Override
 		public void onCellLocationChanged(CellLocation cell) {
-			getCellInfo(cell);
+			getCurrentCellInfo(cell);
 		}
 
 		@Override
 		public void onDataActivity(int direction) {
-			getCellInfo();
+			getCurrentCellInfo();
 		}
 
 		@Override
 		public void onCellInfoChanged(List<CellInfo> info) {
-			getCellInfo();
+			getCurrentCellInfo();
 		}
 	}
 }
