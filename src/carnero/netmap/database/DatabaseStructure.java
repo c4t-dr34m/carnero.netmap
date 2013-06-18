@@ -10,8 +10,8 @@ public class DatabaseStructure {
 
 	public static class PROJECTION {
 
-		public static final String[] BTS = new String[] {COLUMNS_BTS.LAC, COLUMNS_BTS.CID, COLUMNS_BTS.LATITUDE, COLUMNS_BTS.LONGITUDE};
-		public static final String[] SECTOR = new String[] {COLUMNS_SECTORS.X, COLUMNS_SECTORS.Y, COLUMNS_SECTORS.TYPE, COLUMNS_SECTORS.SIGNAL_AVERAGE, COLUMNS_SECTORS.SIGNAL_COUNT};
+		public static final String[] BTS = new String[]{COLUMNS_BTS.LAC, COLUMNS_BTS.CID, COLUMNS_BTS.TYPE, COLUMNS_BTS.LATITUDE, COLUMNS_BTS.LONGITUDE};
+		public static final String[] SECTOR = new String[]{COLUMNS_SECTORS.X, COLUMNS_SECTORS.Y, COLUMNS_SECTORS.TYPE, COLUMNS_SECTORS.SIGNAL_AVERAGE, COLUMNS_SECTORS.SIGNAL_COUNT};
 	}
 
 	public static class COLUMNS_BTS {
@@ -55,16 +55,16 @@ public class DatabaseStructure {
 			sql.append(COLUMNS_BTS.TYPE);
 			sql.append(" integer default 0, ");
 			sql.append(COLUMNS_BTS.LATITUDE);
-			sql.append(" double not null, ");
+			sql.append(" double, ");
 			sql.append(COLUMNS_BTS.LONGITUDE);
-			sql.append(" double not null");
+			sql.append(" double");
 			sql.append(");");
 
 			return sql.toString();
 		}
 
 		public static final String[] createBtsIndexes() {
-			return new String[] {
+			return new String[]{
 					"create index if not exists idx_id on " + TABLE.BTS + " (lac, cid, type)",
 			};
 		}
@@ -95,7 +95,7 @@ public class DatabaseStructure {
 		}
 
 		public static final String[] createSectorIndexes() {
-			return new String[] {
+			return new String[]{
 					"create index if not exists idx_index on " + TABLE.SECTOR + " (index_x, index_y, type)",
 			};
 		}

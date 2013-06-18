@@ -130,13 +130,13 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		}
 
 		final List<Sector> sectors = SectorCache.getAll();
-		Log.d(Constants.TAG, "Loaded BTS count: " + sectors.size());
+		Log.d(Constants.TAG, "Loaded sector count: " + sectors.size());
 		for (Sector sector : sectors) {
 			addSector(sector);
 		}
 
 		final List<Bts> btses = BtsCache.getAll();
-		Log.d(Constants.TAG, "Loaded sector count: " + btses.size());
+		Log.d(Constants.TAG, "Loaded BTS count: " + btses.size());
 		for (Bts bts : btses) {
 			addBts(bts);
 		}
