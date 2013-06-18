@@ -34,7 +34,7 @@ public class BtsDb {
 
 			cursor = db.query(
 					DatabaseStructure.TABLE.BTS,
-					new String[] {DatabaseStructure.COLUMNS_BTS.ID},
+					new String[]{DatabaseStructure.COLUMNS_BTS.ID},
 					where.toString(),
 					null,
 					null,
@@ -95,6 +95,69 @@ public class BtsDb {
 			long id = db.insert(DatabaseStructure.TABLE.BTS, null, values);
 			if (id > 0) {
 				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was saved");
+				return true;
+			}
+		} catch (Exception e) {
+			// pokemon
+		}
+
+		return false;
+	}
+
+	public static boolean updateType(SQLiteDatabase db, Bts bts) {
+		Log.d(Constants.TAG, "Updating BTS type " + bts.lac + ":" + bts.cid + " to " + bts.type);
+
+		final StringBuilder where = new StringBuilder();
+		where.append(DatabaseStructure.COLUMNS_BTS.LAC);
+		where.append(" = ");
+		where.append(bts.lac);
+		where.append(" and ");
+		where.append(DatabaseStructure.COLUMNS_BTS.CID);
+		where.append(" = ");
+		where.append(bts.cid);
+
+		final ContentValues values = new ContentValues();
+		values.put(DatabaseStructure.COLUMNS_BTS.TYPE, bts.type);
+
+		// update
+		try {
+			int rows = db.update(DatabaseStructure.TABLE.BTS, values, where.toString(), null);
+			if (rows > 0) {
+				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated");
+				return true;
+			}
+		} catch (Exception e) {
+			// pokemon
+		}
+
+		return false;
+	}
+
+	public static boolean updateLocation(SQLiteDatabase db, Bts bts) {
+		if (bts.location == null) {
+			return false;
+		}
+
+		Log.d(Constants.TAG, "Updating BTS location " + bts.lac + ":" + bts.cid + " to " + bts.location);
+
+		final StringBuilder where = new StringBuilder();
+		where.append(DatabaseStructure.COLUMNS_BTS.LAC);
+		where.append(" = ");
+		where.append(bts.lac);
+		where.append(" and ");
+		where.append(DatabaseStructure.COLUMNS_BTS.CID);
+		where.append(" = ");
+		where.append(bts.cid);
+
+		final ContentValues values = new ContentValues();
+		values.put(DatabaseStructure.COLUMNS_BTS.LATITUDE, bts.location.latitude);
+		values.put(DatabaseStructure.COLUMNS_BTS.LONGITUDE, bts.location.longitude);
+
+		// update
+		try {
+			int rows = db.update(DatabaseStructure.TABLE.BTS, values, where.toString(), null);
+			if (rows > 0) {
+				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated");
 				return true;
 			}
 		} catch (Exception e) {

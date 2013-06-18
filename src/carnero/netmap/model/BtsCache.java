@@ -1,11 +1,11 @@
 package carnero.netmap.model;
 
-import android.text.TextUtils;
 import android.util.Log;
+import carnero.netmap.App;
 import carnero.netmap.common.Constants;
 import carnero.netmap.common.Util;
+import carnero.netmap.database.BtsDb;
 import carnero.netmap.listener.OnBtsCacheChangedListener;
-import carnero.netmap.listener.OnSectorCacheChangedListener;
 
 import java.util.*;
 
@@ -29,24 +29,72 @@ public class BtsCache {
 			mCache.put(Bts.getId(bts), bts);
 		}
 
-		for (OnBtsCacheChangedListener listener : mListeners) {
-			listener.onBtsCacheChanged(bts);
-		}
+		Log.d(Constants.TAG, "New BTS added");
+		notifyListeners(bts);
+
+		BtsDb.save(App.getDatabase(), bts);
 	}
 
-	public static Bts get(String operator, int lac, int cid, int type) {
-		if (TextUtils.isEmpty(operator) || lac < 0 || cid < 0) {
+	public static Bts update(String operator, int lac, int cid, int type) {
+		if (lac < 0 || cid < 0) {
 			return null;
 		}
 
 		final String id = Bts.getId(lac, cid);
-		Bts cached = mCache.get(id);
+		Bts cached;
+		synchronized (mCache) {
+			cached = mCache.get(id);
+		}
 
 		if (cached == null) {
 			cached = new Bts(lac, cid, type);
 			add(cached);
 		} else {
-			cached.type = Math.max(cached.type, type);
+			if (Util.getNetworkLevel(cached.type) < Util.getNetworkLevel(type)) {
+				cached.type = type;
+
+				Log.d(Constants.TAG, "Changed BTS type to " + cached.type);
+				notifyListeners(cached);
+
+				BtsDb.updateType(App.getDatabase(), cached);
+			}
+		}
+
+		return cached;
+	}
+
+	public static Bts update(Bts bts) {
+		if (bts == null) {
+			return null;
+		}
+
+		final String id = Bts.getId(bts.lac, bts.cid);
+		Bts cached = mCache.get(id);
+
+		if (cached == null) {
+			add(bts);
+		} else {
+			Log.d(Constants.TAG, "type change: " + cached.type + " - " + bts.type);
+
+			if (Util.getNetworkLevel(cached.type) < Util.getNetworkLevel(bts.type)) {
+				cached.type = bts.type;
+
+				Log.d(Constants.TAG, "Changed BTS type to " + cached.type);
+				notifyListeners(cached);
+
+				BtsDb.updateType(App.getDatabase(), cached);
+			}
+
+			if (bts.location != null && (cached.location == null || cached.location.latitude != bts.location.latitude || cached.location.longitude != bts.location.longitude)) {
+				cached.location = bts.location;
+
+				Log.d(Constants.TAG, "Changed BTS location to " + cached.location.latitude + ", " + cached.location.longitude);
+				notifyListeners(cached);
+
+				BtsDb.updateLocation(App.getDatabase(), cached);
+			} else {
+				Log.d(Constants.TAG, "Changed BTS kept to " + cached.location.latitude + ", " + cached.location.longitude);
+			}
 		}
 
 		return cached;
@@ -63,5 +111,11 @@ public class BtsCache {
 		}
 
 		return list;
+	}
+
+	private static void notifyListeners(Bts bts) {
+		for (OnBtsCacheChangedListener listener : mListeners) {
+			listener.onBtsCacheChanged(bts);
+		}
 	}
 }

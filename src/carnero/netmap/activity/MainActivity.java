@@ -3,7 +3,6 @@ package carnero.netmap.activity;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -19,17 +18,15 @@ import android.view.View;
 import android.widget.TextView;
 import carnero.netmap.App;
 import carnero.netmap.R;
-import carnero.netmap.common.*;
-import carnero.netmap.database.BtsDb;
-import carnero.netmap.database.SectorDb;
+import carnero.netmap.common.Constants;
+import carnero.netmap.common.Geo;
+import carnero.netmap.common.LocationUtil;
+import carnero.netmap.common.SimpleGeoReceiver;
 import carnero.netmap.fragment.NetMapFragment;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
-import carnero.netmap.model.Sector;
 import carnero.netmap.model.SectorCache;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
@@ -39,6 +36,7 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 	private Geo mGeo;
 	private TelephonyManager mTelephony;
 	private WifiManager mWiFi;
+	private LatLng mLastLocation;
 	private String[] mNetworkTypes;
 	private TextView mOperatorView;
 	private TextView mLocationView;
@@ -74,7 +72,7 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 
 		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
 
-		mGeo = ((App) getApplication()).getGeolocation();
+		mGeo = App.getGeolocation();
 		mGeo.addReceiver(this);
 	}
 
@@ -88,14 +86,16 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 	}
 
 	public void onLocationChanged(Location location) {
-		getNetworkInfo(null, location);
+		mLastLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+		getNetworkInfo();
 	}
 
 	public void getNetworkInfo() {
-		getNetworkInfo(null, null);
+		getNetworkInfo(null);
 	}
 
-	public void getNetworkInfo(CellLocation cell, Location location) {
+	public void getNetworkInfo(CellLocation cell) {
 		if (mWiFi == null) {
 			mWiFi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 		}
@@ -112,27 +112,32 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 			cell = mTelephony.getCellLocation();
 		}
 
-		if (location != null) {
-			final LatLng position = new LatLng(location.getLatitude(), location.getLongitude());
-			final Sector sector = SectorCache.get(LocationUtil.getSectorXY(position), type);
-			SectorDb.save(((App) getApplication()).getDatabase(), sector);
+		if (mLastLocation != null) {
+			final LatLng position = new LatLng(mLastLocation.latitude, mLastLocation.longitude);
+
+			SectorCache.update(LocationUtil.getSectorXY(position), type);
 		}
 
 		mOperatorView.setText(opName);
 		mNetworkView.setText(mNetworkTypes[type]);
 		if (cell instanceof GsmCellLocation) {
 			final GsmCellLocation gsmCell = (GsmCellLocation) cell;
-			final Bts bts = BtsCache.get(operator, gsmCell.getLac(), gsmCell.getCid(), type);
+			final Bts bts = BtsCache.update(operator, gsmCell.getLac(), gsmCell.getCid(), type);
 
-			StringBuilder sb = new StringBuilder();
-			sb.append(Long.toString(bts.lac));
-			sb.append(":");
-			sb.append(Long.toHexString(bts.cid).toUpperCase());
+			if (bts == null) {
+				mLocationView.setText(null);
+				mLocationView.setOnClickListener(null);
+			} else {
+				StringBuilder sb = new StringBuilder();
+				sb.append(Long.toString(bts.lac));
+				sb.append(":");
+				sb.append(Long.toHexString(bts.cid).toUpperCase());
 
-			mLocationView.setText(sb.toString());
-			mLocationView.setOnClickListener(new BtsClickListener(gsmCell.getCid()));
+				mLocationView.setText(sb.toString());
+				mLocationView.setOnClickListener(new BtsClickListener(gsmCell.getCid()));
 
-			bts.getLocation(mLocationListener);
+				bts.getLocation(mLocationListener);
+			}
 		} else if (cell instanceof CdmaCellLocation) {
 			Log.w(Constants.TAG, "CDMA location not implemented");
 		}
@@ -144,7 +149,7 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 
 		@Override
 		public void onCellLocationChanged(CellLocation cell) {
-			getNetworkInfo(cell, null);
+			getNetworkInfo(cell);
 		}
 
 		@Override
@@ -165,8 +170,7 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 				return;
 			}
 
-			BtsCache.add(bts);
-			BtsDb.save(((App) getApplication()).getDatabase(), bts);
+			BtsCache.update(bts);
 		}
 	}
 

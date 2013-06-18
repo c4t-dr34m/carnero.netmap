@@ -34,7 +34,7 @@ public class SectorDb {
 
 			cursor = db.query(
 					DatabaseStructure.TABLE.SECTOR,
-					new String[] {DatabaseStructure.COLUMNS_SECTORS.ID},
+					new String[]{DatabaseStructure.COLUMNS_SECTORS.ID},
 					where.toString(),
 					null,
 					null,
@@ -93,6 +93,35 @@ public class SectorDb {
 			long id = db.insert(DatabaseStructure.TABLE.SECTOR, null, values);
 			if (id > 0) {
 				Log.i(Constants.TAG, "Sector " + sector.index + " was saved");
+				return true;
+			}
+		} catch (Exception e) {
+			// pokemon
+		}
+
+		return false;
+	}
+
+	public static boolean updateType(SQLiteDatabase db, Sector sector) {
+		Log.d(Constants.TAG, "Updating sector type " + sector.index + " to " + sector.type);
+
+		final StringBuilder where = new StringBuilder();
+		where.append(DatabaseStructure.COLUMNS_SECTORS.X);
+		where.append(" = ");
+		where.append(sector.index.x);
+		where.append(" and ");
+		where.append(DatabaseStructure.COLUMNS_SECTORS.Y);
+		where.append(" = ");
+		where.append(sector.index.y);
+
+		final ContentValues values = new ContentValues();
+		values.put(DatabaseStructure.COLUMNS_SECTORS.TYPE, sector.type);
+
+		// update
+		try {
+			int rows = db.update(DatabaseStructure.TABLE.SECTOR, values, where.toString(), null);
+			if (rows > 0) {
+				Log.i(Constants.TAG, "Sector " + sector.index + " was updated");
 				return true;
 			}
 		} catch (Exception e) {

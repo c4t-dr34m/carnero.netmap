@@ -9,6 +9,7 @@
 	<!-- connection -->
 	<color name="connection_current">#AA000000</color>
 	<!-- coverage -->
+	<color name="sector_border">#AAAAAAAA</color>
 	<color name="connection_l1">#AAAE0100</color>
 	<color name="connection_l2">#AA832B00</color>
 	<color name="connection_l3">#AA575700</color>

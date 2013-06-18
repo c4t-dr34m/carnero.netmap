@@ -17,10 +17,14 @@ public class App extends Application {
 
 	private static Geo sGeo;
 	private static DatabaseHelper sDbHelper;
+	public boolean initialized = false;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
+
+		sGeo = new Geo(this);
+		sDbHelper = new DatabaseHelper(this);
 
 		final List<Bts> btses = BtsDb.loadAll(getDatabase());
 		for (Bts bts : btses) {
@@ -31,6 +35,8 @@ public class App extends Application {
 		for (Sector sector : sectors) {
 			SectorCache.add(sector);
 		}
+
+		initialized = true;
 	}
 
 	@Override
@@ -47,19 +53,11 @@ public class App extends Application {
 		super.onTerminate();
 	}
 
-	public Geo getGeolocation() {
-		if (sGeo == null) {
-			sGeo = new Geo(this);
-		}
-
+	public static Geo getGeolocation() {
 		return sGeo;
 	}
 
-	public SQLiteDatabase getDatabase() {
-		if (sDbHelper == null) {
-			sDbHelper = new DatabaseHelper(this);
-		}
-
+	public static SQLiteDatabase getDatabase() {
 		return sDbHelper.getDatabase();
 	}
 }

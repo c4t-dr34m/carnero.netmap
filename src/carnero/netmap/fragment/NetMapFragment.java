@@ -2,7 +2,6 @@ package carnero.netmap.fragment;
 
 import android.content.Context;
 import android.location.Location;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.telephony.CellInfo;
 import android.telephony.CellLocation;
@@ -16,14 +15,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import carnero.netmap.App;
 import carnero.netmap.R;
-import carnero.netmap.common.*;
-import carnero.netmap.database.BtsDb;
-import carnero.netmap.database.SectorDb;
+import carnero.netmap.common.Constants;
+import carnero.netmap.common.Geo;
+import carnero.netmap.common.SimpleGeoReceiver;
+import carnero.netmap.common.Util;
 import carnero.netmap.listener.OnBtsCacheChangedListener;
-import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.listener.OnSectorCacheChangedListener;
 import carnero.netmap.model.*;
-import com.google.android.gms.maps.*;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.*;
 
 import java.util.ArrayList;
@@ -77,7 +79,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		SectorCache.addListener(this);
 		BtsCache.addListener(this);
 
-		mGeo = ((App) getActivity().getApplication()).getGeolocation();
+		mGeo = App.getGeolocation();
 		mGeo.addReceiver(this);
 
 		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
@@ -190,14 +192,14 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			points.add(mLastBts.location);
 			points.add(mLastLocation);
 
-			mConnectionCurrent.setPoints(points );
+			mConnectionCurrent.setPoints(points);
 		}
 	}
 
 	private void setMapTransparent(ViewGroup group) {
 		int cnt = group.getChildCount();
 
-		for (int i = 0; i < cnt; i ++) {
+		for (int i = 0; i < cnt; i++) {
 			View child = group.getChildAt(i);
 
 			if (child instanceof ViewGroup) {
@@ -244,6 +246,8 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		markerOpts.anchor(0.5f, 1.0f);
 
 		mBtsMarkers.put(id, mMap.addMarker(markerOpts));
+
+		setConnection();
 	}
 
 	private void addSector(Sector sector) {
@@ -256,7 +260,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 		final PolygonOptions polygonOpts = new PolygonOptions();
 		polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
-		polygonOpts.strokeColor(getResources().getColor(R.color.none)); // hopefully this makes margin
+		polygonOpts.strokeColor(getResources().getColor(R.color.sector_border));
 		polygonOpts.fillColor(fill);
 		polygonOpts.addAll(sector.getCorners());
 
@@ -278,12 +282,15 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		if (cell instanceof GsmCellLocation) {
 			final GsmCellLocation cellGsm = (GsmCellLocation) cell;
 
-			mLastBts = BtsCache.get(operator, cellGsm.getLac(), cellGsm.getCid(), type);
+			mLastBts = BtsCache.update(operator, cellGsm.getLac(), cellGsm.getCid(), type);
+
+			if (mLastBts != null && !mBtsMarkers.containsKey(Bts.getId(mLastBts))) {
+				addBts(mLastBts);
+			}
 		} else if (cell instanceof CdmaCellLocation) {
 			Log.w(Constants.TAG, "CDMA location not implemented");
 		}
 
-		setMyMarker();
 		setConnection();
 	}
 

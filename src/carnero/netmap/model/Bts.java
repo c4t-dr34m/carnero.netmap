@@ -1,9 +1,6 @@
 package carnero.netmap.model;
 
-import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 import carnero.netmap.common.BtsLocationDownloader;
-import carnero.netmap.common.Constants;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -44,14 +41,8 @@ public class Bts {
 
 	public void getLocation(OnLocationObtainedListener listener) {
 		if (location != null) {
-			if (listener != null) {
-				listener.onLocationObtained(this);
-			}
-
 			return;
 		}
-
-		Log.d(Constants.TAG, "No location for " + lac + ":" + cid);
 
 		if (!mLoading && !locationNA) {
 			new BtsLocationDownloader(this, listener).execute();

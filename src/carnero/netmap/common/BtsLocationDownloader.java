@@ -3,7 +3,6 @@ package carnero.netmap.common;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
-import carnero.netmap.App;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import com.google.android.gms.maps.model.LatLng;
@@ -84,7 +83,7 @@ public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
 			ins.close();
 			inr.close();
 		} catch (Exception e) {
-			Log.e(Constants.TAG, "Failed to download BTS' location");
+			// pokemon
 		}
 
 		if (!TextUtils.isEmpty(data)) {
@@ -119,9 +118,13 @@ public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
 			}
 
 			if (latitude != Double.NaN && longitude != Double.NaN) {
+				Log.i(Constants.TAG, "BTS' location successfully downloaded");
+
 				return new LatLng(latitude, longitude);
 			}
 		}
+
+		Log.e(Constants.TAG, "Failed to download BTS' location");
 
 		mBts.locationNA = true;
 		return null;

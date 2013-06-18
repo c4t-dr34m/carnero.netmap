@@ -35,6 +35,8 @@ public class Geo {
 		} else {
 			Log.e(Constants.TAG, "Neither NETWORK nor PASSIVE provider available.");
 		}
+
+		Log.i(Constants.TAG, "Geolocation initialized");
 	}
 
 	public void addReceiver(SimpleGeoReceiver receiver) {
@@ -64,6 +66,8 @@ public class Geo {
 		if (mManager != null && mListener != null) {
 			mManager.removeUpdates(mListener);
 		}
+
+		Log.i(Constants.TAG, "Geolocation released");
 	}
 
 	/**
