@@ -83,7 +83,7 @@ public class BtsDb {
 		try {
 			int rows = db.update(DatabaseStructure.TABLE.BTS, values, where.toString(), null);
 			if (rows > 0) {
-				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated");
+				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated (save)");
 				return true;
 			}
 		} catch (Exception e) {
@@ -123,7 +123,7 @@ public class BtsDb {
 		try {
 			int rows = db.update(DatabaseStructure.TABLE.BTS, values, where.toString(), null);
 			if (rows > 0) {
-				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated");
+				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated (type)");
 				return true;
 			}
 		} catch (Exception e) {
@@ -157,7 +157,7 @@ public class BtsDb {
 		try {
 			int rows = db.update(DatabaseStructure.TABLE.BTS, values, where.toString(), null);
 			if (rows > 0) {
-				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated");
+				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated (location)");
 				return true;
 			}
 		} catch (Exception e) {
