@@ -28,9 +28,9 @@ public class SectorDb {
 			where.append(" = ");
 			where.append(sector.index.y);
 			where.append(" and ");
-			where.append(DatabaseStructure.COLUMNS_SECTORS.TYPE);
+			where.append(DatabaseStructure.COLUMNS_SECTORS.NETWORK);
 			where.append(" <= ");
-			where.append(sector.type);
+			where.append(sector.network);
 
 			cursor = db.query(
 					DatabaseStructure.TABLE.SECTOR,
@@ -59,8 +59,6 @@ public class SectorDb {
 			return true;
 		}
 
-		Log.d(Constants.TAG, "Saving sector " + sector.index);
-
 		final StringBuilder where = new StringBuilder();
 		where.append(DatabaseStructure.COLUMNS_SECTORS.X);
 		where.append(" = ");
@@ -73,7 +71,7 @@ public class SectorDb {
 		final ContentValues values = new ContentValues();
 		values.put(DatabaseStructure.COLUMNS_SECTORS.X, sector.index.x);
 		values.put(DatabaseStructure.COLUMNS_SECTORS.Y, sector.index.y);
-		values.put(DatabaseStructure.COLUMNS_SECTORS.TYPE, sector.type);
+		values.put(DatabaseStructure.COLUMNS_SECTORS.NETWORK, sector.network);
 		values.put(DatabaseStructure.COLUMNS_SECTORS.SIGNAL_AVERAGE, sector.signalAverage);
 		values.put(DatabaseStructure.COLUMNS_SECTORS.SIGNAL_COUNT, sector.signalCount);
 
@@ -102,9 +100,7 @@ public class SectorDb {
 		return false;
 	}
 
-	public static boolean updateType(SQLiteDatabase db, Sector sector) {
-		Log.d(Constants.TAG, "Updating sector type " + sector.index + " to " + sector.type);
-
+	public static boolean updateNetwork(SQLiteDatabase db, Sector sector) {
 		final StringBuilder where = new StringBuilder();
 		where.append(DatabaseStructure.COLUMNS_SECTORS.X);
 		where.append(" = ");
@@ -115,7 +111,7 @@ public class SectorDb {
 		where.append(sector.index.y);
 
 		final ContentValues values = new ContentValues();
-		values.put(DatabaseStructure.COLUMNS_SECTORS.TYPE, sector.type);
+		values.put(DatabaseStructure.COLUMNS_SECTORS.NETWORK, sector.network);
 
 		// update
 		try {
@@ -160,13 +156,13 @@ public class SectorDb {
 
 				final int idxX = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.X);
 				final int idxY = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.Y);
-				final int idxType = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.TYPE);
+				final int idxType = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.NETWORK);
 				final int idxAverage = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.SIGNAL_AVERAGE);
 				final int idxCount = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.SIGNAL_COUNT);
 
 				sector = new Sector();
 				sector.index = new XY(cursor.getInt(idxX), cursor.getInt(idxY));
-				sector.type = cursor.getInt(idxType);
+				sector.network = cursor.getInt(idxType);
 				sector.signalAverage = cursor.getDouble(idxAverage);
 				sector.signalCount = cursor.getInt(idxCount);
 			}
@@ -199,7 +195,7 @@ public class SectorDb {
 
 				final int idxX = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.X);
 				final int idxY = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.Y);
-				final int idxType = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.TYPE);
+				final int idxType = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.NETWORK);
 				final int idxAverage = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.SIGNAL_AVERAGE);
 				final int idxCount = cursor.getColumnIndex(DatabaseStructure.COLUMNS_SECTORS.SIGNAL_COUNT);
 
@@ -207,7 +203,7 @@ public class SectorDb {
 				do {
 					sector = new Sector();
 					sector.index = new XY(cursor.getInt(idxX), cursor.getInt(idxY));
-					sector.type = cursor.getInt(idxType);
+					sector.network = cursor.getInt(idxType);
 					sector.signalAverage = cursor.getDouble(idxAverage);
 					sector.signalCount = cursor.getInt(idxCount);
 

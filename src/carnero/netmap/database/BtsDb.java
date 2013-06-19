@@ -28,9 +28,9 @@ public class BtsDb {
 			where.append(" = ");
 			where.append(bts.cid);
 			where.append(" and ");
-			where.append(DatabaseStructure.COLUMNS_BTS.TYPE);
+			where.append(DatabaseStructure.COLUMNS_BTS.NETWORK);
 			where.append(" <= ");
-			where.append(bts.type);
+			where.append(bts.network);
 
 			cursor = db.query(
 					DatabaseStructure.TABLE.BTS,
@@ -59,8 +59,6 @@ public class BtsDb {
 			return true;
 		}
 
-		Log.d(Constants.TAG, "Saving BTS " + bts.lac + ":" + bts.cid);
-
 		final StringBuilder where = new StringBuilder();
 		where.append(DatabaseStructure.COLUMNS_BTS.LAC);
 		where.append(" = ");
@@ -73,7 +71,7 @@ public class BtsDb {
 		final ContentValues values = new ContentValues();
 		values.put(DatabaseStructure.COLUMNS_BTS.LAC, bts.lac);
 		values.put(DatabaseStructure.COLUMNS_BTS.CID, bts.cid);
-		values.put(DatabaseStructure.COLUMNS_BTS.TYPE, bts.type);
+		values.put(DatabaseStructure.COLUMNS_BTS.NETWORK, bts.network);
 		if (bts.location != null) {
 			values.put(DatabaseStructure.COLUMNS_BTS.LATITUDE, bts.location.latitude);
 			values.put(DatabaseStructure.COLUMNS_BTS.LONGITUDE, bts.location.longitude);
@@ -83,7 +81,7 @@ public class BtsDb {
 		try {
 			int rows = db.update(DatabaseStructure.TABLE.BTS, values, where.toString(), null);
 			if (rows > 0) {
-				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated (save)");
+				Log.i(Constants.TAG, "BTS " + bts + " was updated (save)");
 				return true;
 			}
 		} catch (Exception e) {
@@ -94,7 +92,7 @@ public class BtsDb {
 		try {
 			long id = db.insert(DatabaseStructure.TABLE.BTS, null, values);
 			if (id > 0) {
-				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was saved");
+				Log.i(Constants.TAG, "BTS " + bts + " was saved");
 				return true;
 			}
 		} catch (Exception e) {
@@ -104,9 +102,7 @@ public class BtsDb {
 		return false;
 	}
 
-	public static boolean updateType(SQLiteDatabase db, Bts bts) {
-		Log.d(Constants.TAG, "Updating BTS type " + bts.lac + ":" + bts.cid + " to " + bts.type);
-
+	public static boolean updateNetwork(SQLiteDatabase db, Bts bts) {
 		final StringBuilder where = new StringBuilder();
 		where.append(DatabaseStructure.COLUMNS_BTS.LAC);
 		where.append(" = ");
@@ -117,13 +113,13 @@ public class BtsDb {
 		where.append(bts.cid);
 
 		final ContentValues values = new ContentValues();
-		values.put(DatabaseStructure.COLUMNS_BTS.TYPE, bts.type);
+		values.put(DatabaseStructure.COLUMNS_BTS.NETWORK, bts.network);
 
 		// update
 		try {
 			int rows = db.update(DatabaseStructure.TABLE.BTS, values, where.toString(), null);
 			if (rows > 0) {
-				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated (type)");
+				Log.i(Constants.TAG, "BTS " + bts + " was updated (network)");
 				return true;
 			}
 		} catch (Exception e) {
@@ -137,8 +133,6 @@ public class BtsDb {
 		if (bts.location == null) {
 			return false;
 		}
-
-		Log.d(Constants.TAG, "Updating BTS location " + bts.lac + ":" + bts.cid + " to " + bts.location);
 
 		final StringBuilder where = new StringBuilder();
 		where.append(DatabaseStructure.COLUMNS_BTS.LAC);
@@ -157,7 +151,7 @@ public class BtsDb {
 		try {
 			int rows = db.update(DatabaseStructure.TABLE.BTS, values, where.toString(), null);
 			if (rows > 0) {
-				Log.i(Constants.TAG, "BTS " + bts.lac + ":" + bts.cid + " was updated (location)");
+				Log.i(Constants.TAG, "BTS " + bts + " was updated (location)");
 				return true;
 			}
 		} catch (Exception e) {
@@ -196,14 +190,14 @@ public class BtsDb {
 
 				final int idxLac = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.LAC);
 				final int idxCid = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.CID);
-				final int idxType = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.TYPE);
+				final int idxType = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.NETWORK);
 				final int idxLatitude = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.LATITUDE);
 				final int idxLongitude = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.LONGITUDE);
 
 				bts = new Bts();
 				bts.lac = cursor.getLong(idxLac);
 				bts.cid = cursor.getLong(idxCid);
-				bts.type = cursor.getInt(idxType);
+				bts.network = cursor.getInt(idxType);
 				if (!cursor.isNull(idxLatitude) && !cursor.isNull(idxLongitude)) {
 					bts.location = new LatLng(cursor.getDouble(idxLatitude), cursor.getDouble(idxLongitude));
 				}
@@ -237,7 +231,7 @@ public class BtsDb {
 
 				final int idxLac = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.LAC);
 				final int idxCid = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.CID);
-				final int idxType = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.TYPE);
+				final int idxType = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.NETWORK);
 				final int idxLatitude = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.LATITUDE);
 				final int idxLongitude = cursor.getColumnIndex(DatabaseStructure.COLUMNS_BTS.LONGITUDE);
 
@@ -246,7 +240,7 @@ public class BtsDb {
 					bts = new Bts();
 					bts.lac = cursor.getLong(idxLac);
 					bts.cid = cursor.getLong(idxCid);
-					bts.type = cursor.getType(idxType);
+					bts.network = cursor.getInt(idxType);
 					if (!cursor.isNull(idxLatitude) && !cursor.isNull(idxLongitude)) {
 						bts.location = new LatLng(cursor.getDouble(idxLatitude), cursor.getDouble(idxLongitude));
 					}

@@ -9,7 +9,7 @@ public class Sector {
 
 	// public String operator;
 	public XY index;
-	public int type;
+	public int network;
 	public double signalAverage;
 	public double signalCount;
 	public LatLng center;
@@ -19,18 +19,18 @@ public class Sector {
 		// empty
 	}
 
-	public Sector(XY index, int type) {
+	public Sector(XY index, int network) {
 		this.index = index;
 		this.center = LocationUtil.getSectorCenter(index);
 		this.corners = LocationUtil.getSectorHexagon(center);
-		this.type = type;
+		this.network = network;
 	}
 
-	public Sector(LatLng position, int type) {
+	public Sector(LatLng position, int network) {
 		this.index = LocationUtil.getSectorXY(position);
 		this.center = LocationUtil.getSectorCenter(index);
 		this.corners = LocationUtil.getSectorHexagon(center);
-		this.type = type;
+		this.network = network;
 	}
 
 	public LatLng getCenter() {

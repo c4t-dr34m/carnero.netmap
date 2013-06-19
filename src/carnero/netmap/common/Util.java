@@ -6,14 +6,14 @@ import java.io.IOException;
 public class Util {
 
 	/**
-	 * Get network level according to type
+	 * Get network level according to network
 	 *
 	 * @param type
 	 * @return
 	 */
 	public static int getNetworkLevel(int type) {
-		for (int i = 0; i < Constants.NET_LEVELS.length; i ++) {
-			for (int j = 0; j < Constants.NET_LEVELS[i].length; j ++) {
+		for (int i = 0; i < Constants.NET_LEVELS.length; i++) {
+			for (int j = 0; j < Constants.NET_LEVELS[i].length; j++) {
 				if (Constants.NET_LEVELS[i][j] == type) {
 					return i;
 				}
@@ -31,7 +31,7 @@ public class Util {
 	 * @throws IOException
 	 */
 	public static void readIntoBuffer(BufferedReader br, StringBuffer buffer) throws IOException {
-		int bufferSize = 1024*16;
+		int bufferSize = 1024 * 16;
 		char[] bytes = new char[bufferSize];
 		int bytesRead;
 		while ((bytesRead = br.read(bytes)) > 0) {

@@ -1,6 +1,8 @@
 package carnero.netmap.model;
 
+import android.util.Log;
 import carnero.netmap.common.BtsLocationDownloader;
+import carnero.netmap.common.Constants;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -9,7 +11,7 @@ public class Bts {
 	public long lac;
 	public long cid;
 	// public String operator;
-	public int type;
+	public int network;
 	public LatLng location;
 	public LatLng locationNew;
 	// status
@@ -21,10 +23,12 @@ public class Bts {
 		// empty
 	}
 
-	public Bts(int lac, int cid, int type) {
+	public Bts(int lac, int cid, int network) {
 		this.lac = lac;
 		this.cid = cid;
-		this.type = type;
+		this.network = network;
+
+		Log.d(Constants.TAG, this + " = " + this.network + ", update");
 	}
 
 	public static String getId(Bts bts) {
@@ -56,5 +60,15 @@ public class Bts {
 
 	public void clearLoading() {
 		mLoading = false;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(Long.toHexString(lac).toUpperCase());
+		sb.append(":");
+		sb.append(Long.toHexString(cid).toUpperCase());
+
+		return sb.toString();
 	}
 }

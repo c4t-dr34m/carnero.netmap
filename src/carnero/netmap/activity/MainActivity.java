@@ -128,12 +128,7 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 				mLocationView.setText(null);
 				mLocationView.setOnClickListener(null);
 			} else {
-				StringBuilder sb = new StringBuilder();
-				sb.append(Long.toString(bts.lac));
-				sb.append(":");
-				sb.append(Long.toHexString(bts.cid).toUpperCase());
-
-				mLocationView.setText(sb.toString());
+				mLocationView.setText(bts.toString());
 				mLocationView.setOnClickListener(new BtsClickListener(gsmCell.getCid()));
 
 				bts.getLocation(mLocationListener);

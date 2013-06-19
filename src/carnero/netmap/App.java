@@ -28,12 +28,12 @@ public class App extends Application {
 
 		final List<Bts> btses = BtsDb.loadAll(getDatabase());
 		for (Bts bts : btses) {
-			BtsCache.add(bts);
+			BtsCache.addFromDb(bts);
 		}
 
 		final List<Sector> sectors = SectorDb.loadAll(getDatabase());
 		for (Sector sector : sectors) {
-			SectorCache.add(sector);
+			SectorCache.addFromDb(sector);
 		}
 
 		initialized = true;

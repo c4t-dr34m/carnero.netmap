@@ -1,8 +1,6 @@
 package carnero.netmap.model;
 
-import android.util.Log;
 import carnero.netmap.App;
-import carnero.netmap.common.Constants;
 import carnero.netmap.common.Util;
 import carnero.netmap.database.SectorDb;
 import carnero.netmap.listener.OnSectorCacheChangedListener;
@@ -29,10 +27,17 @@ public class SectorCache {
 			mCache.put(sector.index, sector);
 		}
 
-		Log.d(Constants.TAG, "New sector added");
 		notifyListeners(sector);
 
 		SectorDb.save(App.getDatabase(), sector);
+	}
+
+	public static void addFromDb(Sector sector) {
+		synchronized (mCache) {
+			mCache.put(sector.index, sector);
+		}
+
+		notifyListeners(sector);
 	}
 
 	public static Sector update(XY index, int type) {
@@ -49,13 +54,12 @@ public class SectorCache {
 			cached = new Sector(index, type);
 			add(cached);
 		} else {
-			if (Util.getNetworkLevel(cached.type) < Util.getNetworkLevel(type)) {
-				cached.type = type;
+			if (Util.getNetworkLevel(cached.network) < Util.getNetworkLevel(type)) {
+				cached.network = type;
 
-				Log.d(Constants.TAG, "Changed sector type to " + cached.type);
 				notifyListeners(cached);
 
-				SectorDb.updateType(App.getDatabase(), cached);
+				SectorDb.updateNetwork(App.getDatabase(), cached);
 			}
 		}
 

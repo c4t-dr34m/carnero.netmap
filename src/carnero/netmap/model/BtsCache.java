@@ -29,13 +29,20 @@ public class BtsCache {
 			mCache.put(Bts.getId(bts), bts);
 		}
 
-		Log.d(Constants.TAG, "New BTS added");
 		notifyListeners(bts);
 
 		BtsDb.save(App.getDatabase(), bts);
 	}
 
-	public static Bts update(String operator, int lac, int cid, int type) {
+	public static void addFromDb(Bts bts) {
+		synchronized (mCache) {
+			mCache.put(Bts.getId(bts), bts);
+		}
+
+		notifyListeners(bts);
+	}
+
+	public static Bts update(String operator, int lac, int cid, int network) {
 		if (lac < 0 || cid < 0) {
 			return null;
 		}
@@ -47,16 +54,20 @@ public class BtsCache {
 		}
 
 		if (cached == null) {
-			cached = new Bts(lac, cid, type);
+			cached = new Bts(lac, cid, network);
+
+			Log.d(Constants.TAG, cached + " = " + cached.network + ", update 1");
+
 			add(cached);
 		} else {
-			if (Util.getNetworkLevel(cached.type) < Util.getNetworkLevel(type)) {
-				cached.type = type;
+			if (Util.getNetworkLevel(cached.network) < Util.getNetworkLevel(network)) {
+				cached.network = network;
 
-				Log.d(Constants.TAG, "Changed BTS type to " + cached.type);
+				Log.d(Constants.TAG, cached + " = " + cached.network + ", update 2");
+
 				notifyListeners(cached);
 
-				BtsDb.updateType(App.getDatabase(), cached);
+				BtsDb.updateNetwork(App.getDatabase(), cached);
 			}
 		}
 
@@ -74,15 +85,12 @@ public class BtsCache {
 		if (cached == null) {
 			add(bts);
 		} else {
-			Log.d(Constants.TAG, "type change: " + cached.type + " - " + bts.type);
+			if (Util.getNetworkLevel(cached.network) < Util.getNetworkLevel(bts.network)) {
+				cached.network = bts.network;
 
-			if (Util.getNetworkLevel(cached.type) < Util.getNetworkLevel(bts.type)) {
-				cached.type = bts.type;
-
-				Log.d(Constants.TAG, "Changed BTS type to " + cached.type);
 				notifyListeners(cached);
 
-				BtsDb.updateType(App.getDatabase(), cached);
+				BtsDb.updateNetwork(App.getDatabase(), cached);
 			}
 
 			boolean locationChanged = false;
@@ -100,12 +108,9 @@ public class BtsCache {
 			if (locationChanged) {
 				cached.locationNew = null;
 
-				Log.d(Constants.TAG, "Changed BTS location to " + cached.location.latitude + ", " + cached.location.longitude);
 				notifyListeners(cached);
 
 				BtsDb.updateLocation(App.getDatabase(), cached);
-			} else {
-				Log.d(Constants.TAG, "Changed BTS kept to " + cached.location.latitude + ", " + cached.location.longitude);
 			}
 		}
 

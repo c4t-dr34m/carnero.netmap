@@ -216,7 +216,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		}
 
 		final String id = Bts.getId(bts);
-		final int level = Util.getNetworkLevel(bts.type);
+		final int level = Util.getNetworkLevel(bts.network);
 
 		int pinResource;
 		switch (level) {
@@ -251,7 +251,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	}
 
 	private void addSector(Sector sector) {
-		final int level = Util.getNetworkLevel(sector.type);
+		final int level = Util.getNetworkLevel(sector.network);
 		final int fill = mFillColors[level - 1];
 
 		if (mCoveragePolygons.containsKey(sector.index)) {
