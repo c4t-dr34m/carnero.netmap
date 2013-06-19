@@ -11,6 +11,7 @@ public class Bts {
 	// public String operator;
 	public int type;
 	public LatLng location;
+	public LatLng locationNew;
 	// status
 	public boolean locationNA = false;
 	// internal status

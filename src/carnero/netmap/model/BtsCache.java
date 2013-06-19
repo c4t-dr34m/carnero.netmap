@@ -85,8 +85,20 @@ public class BtsCache {
 				BtsDb.updateType(App.getDatabase(), cached);
 			}
 
-			if (bts.location != null && (cached.location == null || cached.location.latitude != bts.location.latitude || cached.location.longitude != bts.location.longitude)) {
+			boolean locationChanged = false;
+
+			if (cached.location == null || (bts.locationNew != null && (bts.locationNew.latitude != cached.location.latitude || bts.locationNew.longitude != cached.location.longitude))) {
+				cached.location = bts.locationNew;
+				locationChanged = true;
+			}
+
+			if (cached.location == null || (bts.location != null && (bts.location.latitude != cached.location.latitude || bts.location.longitude != cached.location.longitude))) {
 				cached.location = bts.location;
+				locationChanged = true;
+			}
+
+			if (locationChanged) {
+				cached.locationNew = null;
 
 				Log.d(Constants.TAG, "Changed BTS location to " + cached.location.latitude + ", " + cached.location.longitude);
 				notifyListeners(cached);

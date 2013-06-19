@@ -131,7 +131,7 @@ public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
 	}
 
 	public void onPostExecute(LatLng result) {
-		mBts.location = result;
+		mBts.locationNew = result;
 
 		if (mListener != null) {
 			mListener.onLocationObtained(mBts);

@@ -166,7 +166,7 @@ public class MainActivity extends Activity implements SimpleGeoReceiver {
 	private class LocationListener implements OnLocationObtainedListener {
 
 		public void onLocationObtained(Bts bts) {
-			if (bts.location == null) {
+			if (bts.locationNew == null) {
 				return;
 			}
 
