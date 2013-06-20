@@ -10,15 +10,10 @@ import android.telephony.TelephonyManager;
 import android.telephony.cdma.CdmaCellLocation;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import carnero.netmap.App;
 import carnero.netmap.R;
-import carnero.netmap.common.Constants;
-import carnero.netmap.common.Geo;
-import carnero.netmap.common.SimpleGeoReceiver;
-import carnero.netmap.common.Util;
+import carnero.netmap.common.*;
 import carnero.netmap.listener.OnBtsCacheChangedListener;
 import carnero.netmap.listener.OnSectorCacheChangedListener;
 import carnero.netmap.model.*;
@@ -28,9 +23,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, OnBtsCacheChangedListener, OnSectorCacheChangedListener {
 
@@ -43,11 +36,19 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	private Marker mMyMarker;
 	private Polyline mConnectionCurrent;
 	private int[] mFillColors = new int[5];
+	private boolean mBtsMarkersEnabled = true;
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
 	private HashMap<XY, Polygon> mCoveragePolygons = new HashMap<XY, Polygon>();
 	private float mZoomDefault = 16f;
 	//
 	final private StatusListener mListener = new StatusListener();
+
+	@Override
+	public void onCreate(Bundle state) {
+		super.onCreate(state);
+
+		setHasOptionsMenu(true);
+	}
 
 	@Override
 	public void onActivityCreated(Bundle state) {
@@ -74,6 +75,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	public void onResume() {
 		super.onResume();
 
+		mBtsMarkersEnabled = Preferences.isSetMarkers(getActivity());
 		initializeMap();
 
 		SectorCache.addListener(this);
@@ -98,6 +100,25 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		mMap = null;
 
 		super.onPause();
+	}
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.netmap_fragment, menu);
+
+		super.onCreateOptionsMenu(menu, inflater);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (item.getItemId() == R.id.menu_markers) {
+			mBtsMarkersEnabled = Preferences.switchMarkers(getActivity());
+			checkMarkers();
+
+			return true;
+		}
+
+		return false;
 	}
 
 	public void onBtsCacheChanged(Bts bts) {
@@ -135,10 +156,12 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			addSector(sector);
 		}
 
-		final List<Bts> btses = BtsCache.getAll();
-		Log.d(Constants.TAG, "Loaded BTS count: " + btses.size());
-		for (Bts bts : btses) {
-			addBts(bts);
+		if (mBtsMarkersEnabled) {
+			final List<Bts> btses = BtsCache.getAll();
+			Log.d(Constants.TAG, "Loaded BTS count: " + btses.size());
+			for (Bts bts : btses) {
+				addBts(bts);
+			}
 		}
 	}
 
@@ -173,29 +196,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		}
 	}
 
-	public void setConnection() {
-		if (mLastLocation == null || mLastBts == null || mLastBts.location == null) {
-			return;
-		}
-
-		// connection
-		if (mConnectionCurrent == null) {
-			final PolylineOptions polylineOpts = new PolylineOptions();
-			polylineOpts.width(getResources().getDimension(R.dimen.connection_width));
-			polylineOpts.color(getResources().getColor(R.color.connection_current));
-			polylineOpts.add(mLastBts.location);
-			polylineOpts.add(mLastLocation);
-
-			mConnectionCurrent = mMap.addPolyline(polylineOpts);
-		} else {
-			final List<LatLng> points = new ArrayList<LatLng>();
-			points.add(mLastBts.location);
-			points.add(mLastLocation);
-
-			mConnectionCurrent.setPoints(points);
-		}
-	}
-
 	private void setMapTransparent(ViewGroup group) {
 		int cnt = group.getChildCount();
 
@@ -210,8 +210,29 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		}
 	}
 
+	private void checkMarkers() {
+		synchronized (mBtsMarkers) {
+			if (mBtsMarkersEnabled) {
+				final List<Bts> btses = BtsCache.getAll();
+				Log.d(Constants.TAG, "Loaded BTS count: " + btses.size());
+				for (Bts bts : btses) {
+					addBts(bts);
+				}
+			} else {
+				final Set<Map.Entry<String, Marker>> keys = mBtsMarkers.entrySet();
+				for (Map.Entry entry : keys) {
+					((Marker) entry.getValue()).remove();
+				}
+
+				mBtsMarkers.clear();
+			}
+		}
+
+		setConnection();
+	}
+
 	private void addBts(Bts bts) {
-		if (bts.location == null) {
+		if (!mBtsMarkersEnabled || bts.location == null) {
 			return;
 		}
 
@@ -265,6 +286,38 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		polygonOpts.addAll(sector.getCorners());
 
 		mCoveragePolygons.put(sector.index, mMap.addPolygon(polygonOpts));
+	}
+
+	public void setConnection() {
+		if (!mBtsMarkersEnabled || mLastLocation == null || mLastBts == null || mLastBts.location == null) {
+			removeConnection();
+
+			return;
+		}
+
+		// connection
+		if (mConnectionCurrent == null) {
+			final PolylineOptions polylineOpts = new PolylineOptions();
+			polylineOpts.width(getResources().getDimension(R.dimen.connection_width));
+			polylineOpts.color(getResources().getColor(R.color.connection_current));
+			polylineOpts.add(mLastBts.location);
+			polylineOpts.add(mLastLocation);
+
+			mConnectionCurrent = mMap.addPolyline(polylineOpts);
+		} else {
+			final List<LatLng> points = new ArrayList<LatLng>();
+			points.add(mLastBts.location);
+			points.add(mLastLocation);
+
+			mConnectionCurrent.setPoints(points);
+		}
+	}
+
+	public void removeConnection() {
+		if (mConnectionCurrent != null) {
+			mConnectionCurrent.remove();
+			mConnectionCurrent = null;
+		}
 	}
 
 	public void getCurrentCellInfo() {

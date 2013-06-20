@@ -3,6 +3,7 @@ package carnero.netmap.common;
 public class Constants {
 
 	public static final String TAG = "carnero.netmap";
+	public static final String PREFERENCES = "netmap";
 
 	// url
 	public static final String URL_BASE_GSMWEB = "http://gsmweb.cz/search.php?par=hex&op=all&razeni=original&smer=vzestupne&udaj=";
@@ -22,9 +23,9 @@ public class Constants {
 	public static final double EARTH_D = 6371.0;
 
 	// network evolution
-	public static final int[] EVO_GSM = new int[] {0, 1, 2};
-	public static final int[] EVO_CDMA = new int[] {0, 4, 7, 5, 6, 12, 14};
-	public static final int[] EVO_UMTS = new int[] {3, 8, 9, 10, 15, 13};
+	public static final int[] EVO_GSM = new int[]{0, 1, 2};
+	public static final int[] EVO_CDMA = new int[]{0, 4, 7, 5, 6, 12, 14};
+	public static final int[] EVO_UMTS = new int[]{3, 8, 9, 10, 15, 13};
 
 	// network levels
 	public static final int NET_LEVEL_1 = 0;
@@ -32,7 +33,7 @@ public class Constants {
 	public static final int NET_LEVEL_3 = 2;
 	public static final int NET_LEVEL_4 = 3;
 	public static final int NET_LEVEL_5 = 4;
-	public static final int[][] NET_LEVELS = new int[][] {
+	public static final int[][] NET_LEVELS = new int[][]{
 			{}, // level 1 (everything not defined)
 			{1}, // level 2
 			{2, 3, 4}, // level 3
