@@ -142,6 +142,7 @@ public class MainService extends Service implements SimpleGeoReceiver {
 			nb.setSmallIcon(R.drawable.ic_notification);
 			nb.setOngoing(true);
 			nb.setWhen(time);
+			nb.setContentTitle(getString(R.string.app_name));
 			nb.setContentText(sb.toString());
 			nb.setContentIntent(intent);
 

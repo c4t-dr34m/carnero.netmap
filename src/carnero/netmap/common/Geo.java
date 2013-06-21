@@ -7,8 +7,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Geolocation component operating with NETWORK provider only
@@ -16,9 +15,9 @@ import java.util.List;
 public class Geo {
 
 	private LocationManager mManager;
-	private Location mLastLocation;
-	final private GeoListener mListener = new GeoListener();
-	final private ArrayList<SimpleGeoReceiver> mReceivers = new ArrayList<SimpleGeoReceiver>();
+	private final GeoListener mListener = new GeoListener();
+	private final ArrayList<SimpleGeoReceiver> mReceivers = new ArrayList<SimpleGeoReceiver>();
+	private final HashMap<String, Location> mLocations = new HashMap<String, Location>();
 
 	public Geo(Context context) {
 		mManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -33,9 +32,7 @@ public class Geo {
 
 		mReceivers.add(receiver);
 
-		if (mLastLocation != null) {
-			receiver.onLocationChanged(mLastLocation);
-		}
+		selectBestLocation();
 	}
 
 	public void removeReceiver(SimpleGeoReceiver receiver) {
@@ -58,14 +55,16 @@ public class Geo {
 		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
 			mListener.provider = LocationManager.NETWORK_PROVIDER;
 			mManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
-		} else if (providers.contains(LocationManager.PASSIVE_PROVIDER)) {
-			mListener.provider = LocationManager.PASSIVE_PROVIDER;
-			mManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
-		} else {
-			Log.e(Constants.TAG, "Neither NETWORK nor PASSIVE provider available.");
+
+			Log.i(Constants.TAG, "Network geolocation initialized");
 		}
 
-		Log.i(Constants.TAG, "Geolocation initialized");
+		if (providers.contains(LocationManager.PASSIVE_PROVIDER)) {
+			mListener.provider = LocationManager.PASSIVE_PROVIDER;
+			mManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
+
+			Log.i(Constants.TAG, "Passive geolocation initialized");
+		}
 	}
 
 	/**
@@ -85,13 +84,50 @@ public class Geo {
 	 * Load last known location and use it if newer, or missing
 	 */
 	private void loadLastLoc() {
-		Location location = mManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-		if (location == null) {
-			location = mManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+		Location location;
+
+		location = mManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		if (location != null) {
+			mLocations.put(LocationManager.NETWORK_PROVIDER, location);
 		}
 
-		if (mLastLocation == null || mLastLocation.getTime() < location.getTime()) {
-			mLastLocation = location;
+		location = mManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+		if (location != null) {
+			mLocations.put(LocationManager.PASSIVE_PROVIDER, location);
+		}
+
+
+		selectBestLocation();
+	}
+
+	/**
+	 * Pick best avialable location and notifies listeners
+	 * Using newest known location
+	 */
+	private void selectBestLocation() {
+		Location location = null;
+
+		long last = Long.MIN_VALUE;
+		String used = "";
+		final Set<Map.Entry<String, Location>> entries = mLocations.entrySet();
+		for (Map.Entry entry : entries) {
+			final Location loc = (Location) entry.getValue();
+
+			if (loc.getTime() > last) {
+				location = loc;
+				last = loc.getTime();
+				used = (String) entry.getKey();
+			}
+		}
+
+		if (location == null) {
+			return;
+		}
+
+		Log.i(Constants.TAG, "Using location from " + used);
+
+		for (SimpleGeoReceiver receiver : mReceivers) {
+			receiver.onLocationChanged(location);
 		}
 	}
 
@@ -102,9 +138,7 @@ public class Geo {
 		public String provider;
 
 		public void onLocationChanged(Location location) {
-			for (SimpleGeoReceiver receiver : mReceivers) {
-				receiver.onLocationChanged(location);
-			}
+			mLocations.put(provider, location);
 		}
 
 		public void onProviderDisabled(String provider) {
