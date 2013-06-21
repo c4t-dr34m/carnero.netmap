@@ -1,44 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent" >
+	android:layout_height="match_parent">
 
 	<FrameLayout android:id="@+id/fragment_container"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent" />
-
-	<RelativeLayout
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:padding="@dimen/size_quantum_half"
-		android:background="@color/black_transparent">
-
-		<TextView android:id="@+id/network_type"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentRight="true"
-			android:singleLine="true"
-			android:ellipsize="marquee"
-			android:textSize="32dp"
-			android:textColor="@color/white"/>
-		<TextView android:id="@+id/network_operator"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentLeft="true"
-			android:layout_toLeftOf="@id/network_type"
-			android:singleLine="true"
-			android:ellipsize="marquee"
-			android:textSize="14dp"
-			android:textColor="@color/white"/>
-		<TextView android:id="@+id/network_location"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentLeft="true"
-			android:layout_below="@id/network_operator"
-			android:layout_toLeftOf="@id/network_type"
-			android:singleLine="true"
-			android:ellipsize="marquee"
-			android:textSize="14dp"
-			android:textColor="@color/white"/>
-	</RelativeLayout>
+		android:layout_height="match_parent"/>
 </RelativeLayout>

@@ -1,7 +1,9 @@
 package carnero.netmap.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.CellInfo;
 import android.telephony.CellLocation;
@@ -348,6 +350,28 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	}
 
 	// classes
+
+	public class BtsClickListener implements View.OnClickListener {
+
+		private int mCid;
+
+		public BtsClickListener(int cid) {
+			mCid = cid;
+		}
+
+		@Override
+		public void onClick(View v) {
+			if (mCid <= 0) {
+				return;
+			}
+
+			String url = Constants.URL_BASE_GSMWEB + Integer.toHexString(mCid).toUpperCase();
+			Intent intent = new Intent(Intent.ACTION_VIEW);
+			intent.setData(Uri.parse(url));
+
+			startActivity(intent);
+		}
+	}
 
 	public class StatusListener extends PhoneStateListener {
 

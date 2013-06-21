@@ -8,6 +8,9 @@ public class Constants {
 	// url
 	public static final String URL_BASE_GSMWEB = "http://gsmweb.cz/search.php?par=hex&op=all&razeni=original&smer=vzestupne&udaj=";
 
+	// notification
+	public static final int NOTIFICATION_ID = 48;
+
 	// geolocation config
 	public static final int GEO_DISTANCE = 10; // 10 m
 	public static final long GEO_TIME = 5000l; // 5 sec
