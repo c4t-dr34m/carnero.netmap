@@ -50,9 +50,9 @@ public class Geo {
 	 */
 	private void init() {
 		List<String> providers = mManager.getAllProviders();
-		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
-			mListener.provider = LocationManager.NETWORK_PROVIDER;
-			mManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
+		if (providers.contains(LocationManager.GPS_PROVIDER)) {
+			mListener.provider = LocationManager.GPS_PROVIDER;
+			mManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
 
 			Log.i(Constants.TAG, "Network geolocation initialized");
 		}
@@ -82,42 +82,32 @@ public class Geo {
 	 * Load last known location and use it if newer, or missing
 	 */
 	public Location getLastLoc() {
-		Location latest = null;
-		String used = null;
-		Location location;
-		Long time = Long.MIN_VALUE;
+		Location bestResult = null;
 
-		location = mManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		if (location != null) {
-			time = location.getTime();
-			latest = location;
-			used = LocationManager.GPS_PROVIDER;
-		}
+		long bestTime = Long.MIN_VALUE;
+		long minTime = System.currentTimeMillis() - (60 * 60 * 1000); // 1 hr
+		float bestAccuracy = Float.MAX_VALUE;
 
-		location = mManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-		if (location != null) {
-			if (location.getTime() > time) {
-				time = location.getTime();
-				latest = location;
-				used = LocationManager.NETWORK_PROVIDER;
-			}
-		}
-		location = mManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+		final List<String> matchingProviders = mManager.getAllProviders();
+		for (String provider : matchingProviders) {
+			final Location location = mManager.getLastKnownLocation(provider);
 
-		if (location != null) {
-			if (location.getTime() > time) {
-				latest = location;
-				used = LocationManager.PASSIVE_PROVIDER;
+			if (location != null) {
+				float accuracy = location.getAccuracy();
+				long time = location.getTime();
+
+				if ((time > minTime && accuracy < bestAccuracy)) {
+					bestResult = location;
+					bestAccuracy = accuracy;
+					bestTime = time;
+				} else if (time < minTime && bestAccuracy == Float.MAX_VALUE && time > bestTime) {
+					bestResult = location;
+					bestTime = time;
+				}
 			}
 		}
 
-		if (latest == null) {
-			return null;
-		}
-
-		Log.i(Constants.TAG, "Using last location from " + used);
-
-		return latest;
+		return bestResult;
 	}
 
 	/**

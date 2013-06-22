@@ -4,10 +4,14 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.wifi.WifiManager;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.telephony.CellInfo;
 import android.telephony.CellLocation;
@@ -16,13 +20,10 @@ import android.telephony.TelephonyManager;
 import android.telephony.cdma.CdmaCellLocation;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
-import carnero.netmap.App;
 import carnero.netmap.R;
 import carnero.netmap.activity.MainActivity;
 import carnero.netmap.common.Constants;
-import carnero.netmap.common.Geo;
 import carnero.netmap.common.LocationUtil;
-import carnero.netmap.common.SimpleGeoReceiver;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
@@ -31,29 +32,26 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
-public class MainService extends Service implements SimpleGeoReceiver {
+public class MainService extends Service {
 
 	private NotificationManager mNotificationManager;
-	private Geo mGeo;
 	private TelephonyManager mTelephony;
 	private WifiManager mWiFi;
 	private LatLng mLastLocation;
+	private Long mLastLocationTime;
 	private String[] mNetworkTypes;
+	private PendingIntent mPendingIntent;
 	final private StatusListener mListener = new StatusListener();
 	final private LocationListener mLocationListener = new LocationListener();
+	final private PassiveLocationReceiver mPassiveReceiver = new PassiveLocationReceiver();
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 
 		mTelephony = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-
 		mNetworkTypes = getResources().getStringArray(R.array.network_types);
-
 		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
-
-		mGeo = App.getGeolocation();
-		mGeo.addReceiver(this);
 
 		// notification
 		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -64,13 +62,15 @@ public class MainService extends Service implements SimpleGeoReceiver {
 				.setContentTitle(getString(R.string.app_name))
 				.setContentText("");
 
+		registerReceiver(mPassiveReceiver, new IntentFilter(Constants.GEO_PASSIVE_INTENT));
+		requestPassiveLocation();
 		startForeground(Constants.NOTIFICATION_ID, builder.build());
 	}
 
 	@Override
 	public void onDestroy() {
-		mGeo.removeReceiver(this);
-
+		cancelPassiveLocation();
+		unregisterReceiver(mPassiveReceiver);
 		mTelephony.listen(mListener, PhoneStateListener.LISTEN_NONE);
 
 		super.onDestroy();
@@ -81,11 +81,7 @@ public class MainService extends Service implements SimpleGeoReceiver {
 		return null;
 	}
 
-	public void onLocationChanged(Location location) {
-		mLastLocation = new LatLng(location.getLatitude(), location.getLongitude());
-
-		getNetworkInfo();
-	}
+	// network
 
 	public void getNetworkInfo() {
 		getNetworkInfo(null);
@@ -150,6 +146,33 @@ public class MainService extends Service implements SimpleGeoReceiver {
 		}
 	}
 
+	// location
+
+	public void requestPassiveLocation() {
+		final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		final Intent intent = new Intent(Constants.GEO_PASSIVE_INTENT);
+
+		mPendingIntent = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+		manager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mPendingIntent);
+	}
+
+	public void cancelPassiveLocation() {
+		final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+		manager.removeUpdates(mPendingIntent);
+	}
+
+	public void onLocationChanged(Location location) {
+		if (location == null) {
+			return;
+		}
+		mLastLocation = new LatLng(location.getLatitude(), location.getLongitude());
+		mLastLocationTime = location.getTime();
+
+		getNetworkInfo();
+	}
+
 	// classes
 
 	public class StatusListener extends PhoneStateListener {
@@ -178,6 +201,17 @@ public class MainService extends Service implements SimpleGeoReceiver {
 			}
 
 			BtsCache.update(bts);
+		}
+	}
+
+	private class PassiveLocationReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			final Bundle extra = intent.getExtras();
+			final Location location = (Location) extra.get(LocationManager.KEY_LOCATION_CHANGED);
+
+			onLocationChanged(location);
 		}
 	}
 }
