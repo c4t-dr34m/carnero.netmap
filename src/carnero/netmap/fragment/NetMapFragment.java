@@ -84,6 +84,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		BtsCache.addListener(this);
 
 		mGeo = App.getGeolocation();
+		onLocationChanged(mGeo.getLastLoc());
 		mGeo.addReceiver(this);
 
 		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
@@ -168,6 +169,10 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	}
 
 	public void onLocationChanged(Location location) {
+		if (location == null) {
+			return;
+		}
+
 		mLastLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
 		setMyMarker();

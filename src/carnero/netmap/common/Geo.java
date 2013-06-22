@@ -49,8 +49,6 @@ public class Geo {
 	 * Initialize service
 	 */
 	private void init() {
-		loadLastLoc();
-
 		List<String> providers = mManager.getAllProviders();
 		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
 			mListener.provider = LocationManager.NETWORK_PROVIDER;
@@ -83,21 +81,43 @@ public class Geo {
 	/**
 	 * Load last known location and use it if newer, or missing
 	 */
-	private void loadLastLoc() {
+	public Location getLastLoc() {
+		Location latest = null;
+		String used = null;
 		Location location;
+		Long time = Long.MIN_VALUE;
+
+		location = mManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		if (location != null) {
+			time = location.getTime();
+			latest = location;
+			used = LocationManager.GPS_PROVIDER;
+		}
 
 		location = mManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		if (location != null) {
-			mLocations.put(LocationManager.NETWORK_PROVIDER, location);
+			if (location.getTime() > time) {
+				time = location.getTime();
+				latest = location;
+				used = LocationManager.NETWORK_PROVIDER;
+			}
 		}
-
 		location = mManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+
 		if (location != null) {
-			mLocations.put(LocationManager.PASSIVE_PROVIDER, location);
+			if (location.getTime() > time) {
+				latest = location;
+				used = LocationManager.PASSIVE_PROVIDER;
+			}
 		}
 
+		if (latest == null) {
+			return null;
+		}
 
-		selectBestLocation();
+		Log.i(Constants.TAG, "Using last location from " + used);
+
+		return latest;
 	}
 
 	/**
