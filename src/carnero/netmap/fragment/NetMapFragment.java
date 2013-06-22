@@ -77,15 +77,14 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	public void onResume() {
 		super.onResume();
 
+		mGeo = App.getGeolocation();
+
 		mBtsMarkersEnabled = Preferences.isSetMarkers(getActivity());
 		initializeMap();
 
+		mGeo.addReceiver(this);
 		SectorCache.addListener(this);
 		BtsCache.addListener(this);
-
-		mGeo = App.getGeolocation();
-		onLocationChanged(mGeo.getLastLoc());
-		mGeo.addReceiver(this);
 
 		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
 	}
@@ -166,6 +165,8 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 				addBts(bts);
 			}
 		}
+
+		setMyMarker();
 	}
 
 	public void onLocationChanged(Location location) {
@@ -180,27 +181,43 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	}
 
 	public void setMyMarker() {
-		if (mLastLocation == null) {
+		final LatLng location = getMyLocation();
+		if (location == null) {
 			return;
 		}
 
 		// my current position
 		if (mMyMarker == null) {
 			final MarkerOptions markerOpts = new MarkerOptions();
-			markerOpts.position(mLastLocation);
+			markerOpts.position(location);
 			markerOpts.icon(BitmapDescriptorFactory.fromResource(R.drawable.pin_my));
 			markerOpts.anchor(0.5f, 0.5f);
 
 			mMyMarker = mMap.addMarker(markerOpts);
 		} else {
-			mMyMarker.setPosition(mLastLocation);
+			mMyMarker.setPosition(location);
 		}
 
 		if (!mCentered) {
-			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, mZoomDefault));
+			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, mZoomDefault));
 
 			mCentered = true;
 		}
+	}
+
+	public LatLng getMyLocation() {
+		LatLng location = mLastLocation;
+
+		if (location == null) {
+			final Location loc = mGeo.getLastLoc();
+			if (loc == null) {
+				return null;
+			}
+
+			location = new LatLng(loc.getLatitude(), loc.getLongitude());
+		}
+
+		return location;
 	}
 
 	private void setMapTransparent(ViewGroup group) {
@@ -296,7 +313,9 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	}
 
 	public void setConnection() {
-		if (!mBtsMarkersEnabled || mLastLocation == null || mLastBts == null || mLastBts.location == null) {
+		final LatLng location = getMyLocation();
+
+		if (!mBtsMarkersEnabled || mLastBts == null || mLastBts.location == null || location == null) {
 			removeConnection();
 
 			return;
@@ -308,13 +327,13 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			polylineOpts.width(getResources().getDimension(R.dimen.connection_width));
 			polylineOpts.color(getResources().getColor(R.color.connection_current));
 			polylineOpts.add(mLastBts.location);
-			polylineOpts.add(mLastLocation);
+			polylineOpts.add(location);
 
 			mConnectionCurrent = mMap.addPolyline(polylineOpts);
 		} else {
 			final List<LatLng> points = new ArrayList<LatLng>();
 			points.add(mLastBts.location);
-			points.add(mLastLocation);
+			points.add(location);
 
 			mConnectionCurrent.setPoints(points);
 		}
