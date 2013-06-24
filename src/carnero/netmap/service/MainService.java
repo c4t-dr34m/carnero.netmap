@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -25,6 +26,7 @@ import carnero.netmap.R;
 import carnero.netmap.activity.MainActivity;
 import carnero.netmap.common.Constants;
 import carnero.netmap.common.LocationUtil;
+import carnero.netmap.common.Util;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
@@ -44,6 +46,7 @@ public class MainService extends Service {
 	private String[] mNetworkTypes;
 	private PendingIntent mPassivePending;
 	private PendingIntent mOneShotPending;
+	private int[] mIcons = new int[5];
 	final private StatusListener mListener = new StatusListener();
 	final private LocationListener mLocationListener = new LocationListener();
 	final private PassiveLocationReceiver mPassiveReceiver = new PassiveLocationReceiver();
@@ -52,6 +55,12 @@ public class MainService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
+
+		mIcons[0] = R.drawable.ic_notification_l1;
+		mIcons[1] = R.drawable.ic_notification_l2;
+		mIcons[2] = R.drawable.ic_notification_l3;
+		mIcons[3] = R.drawable.ic_notification_l4;
+		mIcons[4] = R.drawable.ic_notification_l5;
 
 		mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		mTelephony = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
@@ -62,7 +71,7 @@ public class MainService extends Service {
 		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		final Notification.Builder builder = new Notification.Builder(this)
 				.setOngoing(true)
-				.setSmallIcon(R.drawable.ic_notification)
+				.setSmallIcon(R.drawable.ic_notification_l5)
 				.setTicker(getString(R.string.app_name))
 				.setContentTitle(getString(R.string.app_name))
 				.setContentText("");
@@ -100,10 +109,11 @@ public class MainService extends Service {
 		final StringBuilder sbShort = new StringBuilder();
 		final StringBuilder sbLong = new StringBuilder();
 
+		PendingIntent gsmWeb = null;
 		long time = System.currentTimeMillis();
 		// final int wifi = mWiFi.getWifiState();
 		final String operator = mTelephony.getNetworkOperator();
-		final String opName = mTelephony.getNetworkOperatorName();
+		// final String opName = mTelephony.getNetworkOperatorName();
 		// final boolean roaming = mTelephony.isNetworkRoaming();
 		// final int data = mTelephony.getDataState();
 		final int type = mTelephony.getNetworkType();
@@ -118,21 +128,20 @@ public class MainService extends Service {
 			SectorCache.update(LocationUtil.getSectorXY(position), type);
 		}
 
-		sbShort.append(opName);
-		sbShort.append(" ");
-		sbShort.append(mNetworkTypes[type]);
-
-		sbLong.append(sbShort);
-		sbLong.append("\n");
-
 		if (cell instanceof GsmCellLocation) {
 			final GsmCellLocation gsmCell = (GsmCellLocation) cell;
 			final Bts bts = BtsCache.update(operator, gsmCell.getLac(), gsmCell.getCid(), type);
 
 			if (bts != null) {
-				sbLong.append("current cell: ");
+				sbShort.append(bts.toString());
+
 				sbLong.append(bts.toString());
 				sbLong.append("\n");
+
+				final String url = Constants.URL_BASE_GSMWEB + Long.toHexString(bts.cid).toUpperCase();
+				final Intent intent = new Intent(Intent.ACTION_VIEW);
+				intent.setData(Uri.parse(url));
+				gsmWeb = PendingIntent.getActivity(this, -1, intent, 0);
 
 				bts.getLocation(mLocationListener);
 			}
@@ -140,22 +149,28 @@ public class MainService extends Service {
 			Log.w(Constants.TAG, "CDMA location not implemented");
 		}
 
-		sbLong.append("collected sectors: " + SectorCache.size());
+		sbLong.append("\n");
+		sbLong.append("sectors: " + SectorCache.size());
 
 		if (mNotificationManager != null) {
 			final Intent notificationIntent = new Intent(this, MainActivity.class);
 			final PendingIntent intent = PendingIntent.getActivity(this, -1, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 			final Notification.Builder nb = new Notification.Builder(this);
-			nb.setSmallIcon(R.drawable.ic_notification);
+
+			nb.setSmallIcon(mIcons[Util.getNetworkLevel(type)]);
 			nb.setOngoing(true);
 			nb.setWhen(time);
-			nb.setContentTitle(getString(R.string.app_name));
+			nb.setContentTitle(mNetworkTypes[type]);
 			nb.setContentText(sbShort.toString());
 			nb.setContentIntent(intent);
-			final Notification.BigTextStyle bs = new Notification.BigTextStyle(nb);
-			bs.bigText(sbLong.toString());
+			if (gsmWeb != null) {
+				nb.addAction(android.R.drawable.ic_menu_search, getString(R.string.notification_gsmweb), gsmWeb);
+			}
 
-			mNotificationManager.notify(Constants.NOTIFICATION_ID, bs.build());
+			final Notification.BigTextStyle ns = new Notification.BigTextStyle(nb);
+			ns.bigText(sbLong.toString());
+
+			mNotificationManager.notify(Constants.NOTIFICATION_ID, ns.build());
 		}
 	}
 
