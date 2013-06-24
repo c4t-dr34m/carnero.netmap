@@ -14,6 +14,7 @@ public class Constants {
 	// geolocation config
 	public static final int GEO_DISTANCE = 30; // 30 m
 	public static final long GEO_TIME = 2500l; // 2.5 s
+	public static final String GEO_ONESHOT_INTENT = "carnero.netmap.GEO_ONESHOT";
 	public static final String GEO_PASSIVE_INTENT = "carnero.netmap.GEO_PASSIVE";
 
 	// BTS circle sections

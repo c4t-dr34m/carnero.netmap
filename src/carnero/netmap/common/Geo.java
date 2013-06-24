@@ -54,14 +54,12 @@ public class Geo {
 			mListener.provider = LocationManager.GPS_PROVIDER;
 			mManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
 
+			Log.i(Constants.TAG, "GPS geolocation initialized");
+		} else if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
+			mListener.provider = LocationManager.NETWORK_PROVIDER;
+			mManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
+
 			Log.i(Constants.TAG, "Network geolocation initialized");
-		}
-
-		if (providers.contains(LocationManager.PASSIVE_PROVIDER)) {
-			mListener.provider = LocationManager.PASSIVE_PROVIDER;
-			mManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mListener);
-
-			Log.i(Constants.TAG, "Passive geolocation initialized");
 		}
 	}
 

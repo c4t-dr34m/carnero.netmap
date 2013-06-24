@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.wifi.WifiManager;
@@ -34,21 +35,25 @@ import java.util.List;
 
 public class MainService extends Service {
 
+	private LocationManager mManager;
 	private NotificationManager mNotificationManager;
 	private TelephonyManager mTelephony;
 	private WifiManager mWiFi;
 	private LatLng mLastLocation;
 	private Long mLastLocationTime;
 	private String[] mNetworkTypes;
-	private PendingIntent mPendingIntent;
+	private PendingIntent mPassivePending;
+	private PendingIntent mOneShotPending;
 	final private StatusListener mListener = new StatusListener();
 	final private LocationListener mLocationListener = new LocationListener();
 	final private PassiveLocationReceiver mPassiveReceiver = new PassiveLocationReceiver();
+	final private OneShotLocationReceiver mOneShotReceiver = new OneShotLocationReceiver();
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 
+		mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		mTelephony = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 		mNetworkTypes = getResources().getStringArray(R.array.network_types);
 		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
@@ -148,19 +153,28 @@ public class MainService extends Service {
 
 	// location
 
+	public void requestOneShotLocation() {
+		final Intent intent = new Intent(Constants.GEO_PASSIVE_INTENT);
+		final Criteria criteria = new Criteria();
+		criteria.setCostAllowed(true);
+		criteria.setAccuracy(Criteria.ACCURACY_MEDIUM);
+		criteria.setPowerRequirement(Criteria.POWER_LOW);
+		criteria.setAltitudeRequired(false);
+		criteria.setSpeedRequired(false);
+
+		mOneShotPending = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		mManager.requestSingleUpdate(criteria, mOneShotPending);
+	}
+
 	public void requestPassiveLocation() {
-		final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		final Intent intent = new Intent(Constants.GEO_PASSIVE_INTENT);
 
-		mPendingIntent = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-		manager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mPendingIntent);
+		mPassivePending = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		mManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mPassivePending);
 	}
 
 	public void cancelPassiveLocation() {
-		final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-		manager.removeUpdates(mPendingIntent);
+		mManager.removeUpdates(mPassivePending);
 	}
 
 	public void onLocationChanged(Location location) {
@@ -204,6 +218,9 @@ public class MainService extends Service {
 		}
 	}
 
+	/**
+	 * Receives new location broadcast
+	 */
 	private class PassiveLocationReceiver extends BroadcastReceiver {
 
 		@Override
@@ -212,6 +229,24 @@ public class MainService extends Service {
 			final Location location = (Location) extra.get(LocationManager.KEY_LOCATION_CHANGED);
 
 			onLocationChanged(location);
+		}
+	}
+
+	/**
+	 * Receives new location broadcast and unregisters itself
+	 */
+	private class OneShotLocationReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			unregisterReceiver(mOneShotReceiver);
+
+			final Bundle extra = intent.getExtras();
+			final Location location = (Location) extra.get(LocationManager.KEY_LOCATION_CHANGED);
+
+			onLocationChanged(location);
+
+			mManager.removeUpdates(mOneShotPending);
 		}
 	}
 }

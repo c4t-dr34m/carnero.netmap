@@ -38,6 +38,10 @@
 
 		<service android:name=".service.MainService">
 			<intent-filter>
+				<action android:name="carnero.netmap.GEO_ONESHOT"/>
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+			<intent-filter>
 				<action android:name="carnero.netmap.GEO_PASSIVE"/>
 				<category android:name="android.intent.category.DEFAULT"/>
 			</intent-filter>
