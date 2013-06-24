@@ -1,9 +1,6 @@
 package carnero.netmap.service;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
+import android.app.*;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -37,18 +34,21 @@ import java.util.List;
 
 public class MainService extends Service {
 
-	private LocationManager mManager;
+	private TelephonyManager mTelephonyManager;
+	private LocationManager mLocationManager;
+	private AlarmManager mAlarmManager;
 	private NotificationManager mNotificationManager;
-	private TelephonyManager mTelephony;
 	private WifiManager mWiFi;
 	private LatLng mLastLocation;
 	private Long mLastLocationTime;
 	private String[] mNetworkTypes;
+	private PendingIntent mWakeupPending;
 	private PendingIntent mPassivePending;
 	private PendingIntent mOneShotPending;
 	private int[] mIcons = new int[5];
 	final private StatusListener mListener = new StatusListener();
 	final private LocationListener mLocationListener = new LocationListener();
+	final private WakeupReceiver mWakeupReceiver = new WakeupReceiver();
 	final private PassiveLocationReceiver mPassiveReceiver = new PassiveLocationReceiver();
 	final private OneShotLocationReceiver mOneShotReceiver = new OneShotLocationReceiver();
 
@@ -62,10 +62,11 @@ public class MainService extends Service {
 		mIcons[3] = R.drawable.ic_notification_l4;
 		mIcons[4] = R.drawable.ic_notification_l5;
 
-		mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		mTelephony = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+		mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 		mNetworkTypes = getResources().getStringArray(R.array.network_types);
-		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
+		mTelephonyManager.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
 
 		// notification
 		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -76,7 +77,9 @@ public class MainService extends Service {
 				.setContentTitle(getString(R.string.app_name))
 				.setContentText("");
 
+		registerReceiver(mWakeupReceiver, new IntentFilter(Constants.GEO_WAKEUP_INTENT));
 		registerReceiver(mPassiveReceiver, new IntentFilter(Constants.GEO_PASSIVE_INTENT));
+
 		requestPassiveLocation();
 		startForeground(Constants.NOTIFICATION_ID, builder.build());
 	}
@@ -85,7 +88,8 @@ public class MainService extends Service {
 	public void onDestroy() {
 		cancelPassiveLocation();
 		unregisterReceiver(mPassiveReceiver);
-		mTelephony.listen(mListener, PhoneStateListener.LISTEN_NONE);
+		unregisterReceiver(mWakeupReceiver);
+		mTelephonyManager.listen(mListener, PhoneStateListener.LISTEN_NONE);
 
 		super.onDestroy();
 	}
@@ -112,14 +116,14 @@ public class MainService extends Service {
 		PendingIntent gsmWeb = null;
 		long time = System.currentTimeMillis();
 		// final int wifi = mWiFi.getWifiState();
-		final String operator = mTelephony.getNetworkOperator();
-		// final String opName = mTelephony.getNetworkOperatorName();
-		// final boolean roaming = mTelephony.isNetworkRoaming();
-		// final int data = mTelephony.getDataState();
-		final int type = mTelephony.getNetworkType();
+		final String operator = mTelephonyManager.getNetworkOperator();
+		// final String opName = mTelephonyManager.getNetworkOperatorName();
+		// final boolean roaming = mTelephonyManager.isNetworkRoaming();
+		// final int data = mTelephonyManager.getDataState();
+		final int type = mTelephonyManager.getNetworkType();
 
 		if (cell == null) {
-			cell = mTelephony.getCellLocation();
+			cell = mTelephonyManager.getCellLocation();
 		}
 
 		if (mLastLocation != null) {
@@ -178,26 +182,25 @@ public class MainService extends Service {
 
 	public void requestOneShotLocation() {
 		final Intent intent = new Intent(Constants.GEO_PASSIVE_INTENT);
+		mOneShotPending = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
 		final Criteria criteria = new Criteria();
 		criteria.setCostAllowed(true);
 		criteria.setAccuracy(Criteria.ACCURACY_MEDIUM);
 		criteria.setPowerRequirement(Criteria.POWER_LOW);
 		criteria.setAltitudeRequired(false);
 		criteria.setSpeedRequired(false);
-
-		mOneShotPending = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-		mManager.requestSingleUpdate(criteria, mOneShotPending);
+		mLocationManager.requestSingleUpdate(criteria, mOneShotPending);
 	}
 
 	public void requestPassiveLocation() {
 		final Intent intent = new Intent(Constants.GEO_PASSIVE_INTENT);
-
 		mPassivePending = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-		mManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mPassivePending);
+		mLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mPassivePending);
 	}
 
 	public void cancelPassiveLocation() {
-		mManager.removeUpdates(mPassivePending);
+		mLocationManager.removeUpdates(mPassivePending);
 	}
 
 	public void onLocationChanged(Location location) {
@@ -208,6 +211,13 @@ public class MainService extends Service {
 		mLastLocationTime = location.getTime();
 
 		getNetworkInfo();
+
+		if (mWakeupPending != null) {
+			mAlarmManager.cancel(mWakeupPending);
+		}
+		final Intent intent = new Intent(Constants.GEO_WAKEUP_INTENT);
+		mWakeupPending = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		mAlarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, 300000, AlarmManager.INTERVAL_FIFTEEN_MINUTES, mWakeupPending);
 	}
 
 	// classes
@@ -242,12 +252,27 @@ public class MainService extends Service {
 	}
 
 	/**
+	 * Receives wakeup request and try to get new location
+	 */
+	private class WakeupReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Log.w(Constants.TAG, "Wake up call received");
+
+			requestOneShotLocation();
+		}
+	}
+
+	/**
 	 * Receives new location broadcast
 	 */
 	private class PassiveLocationReceiver extends BroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			Log.w(Constants.TAG, "New location received (passive)");
+
 			final Bundle extra = intent.getExtras();
 			final Location location = (Location) extra.get(LocationManager.KEY_LOCATION_CHANGED);
 
@@ -262,6 +287,8 @@ public class MainService extends Service {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			Log.w(Constants.TAG, "New location received (one shot)");
+
 			unregisterReceiver(mOneShotReceiver);
 
 			final Bundle extra = intent.getExtras();
@@ -269,7 +296,7 @@ public class MainService extends Service {
 
 			onLocationChanged(location);
 
-			mManager.removeUpdates(mOneShotPending);
+			mLocationManager.removeUpdates(mOneShotPending);
 		}
 	}
 }

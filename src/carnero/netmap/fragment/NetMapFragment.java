@@ -315,9 +315,11 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	public void setConnection() {
 		final LatLng location = getMyLocation();
 
+		if (mMap == null) {
+			return;
+		}
 		if (!mBtsMarkersEnabled || mLastBts == null || mLastBts.location == null || location == null) {
 			removeConnection();
-
 			return;
 		}
 
