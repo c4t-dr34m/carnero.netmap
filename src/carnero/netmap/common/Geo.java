@@ -6,6 +6,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.*;
 
@@ -79,33 +80,13 @@ public class Geo {
 	/**
 	 * Load last known location and use it if newer, or missing
 	 */
-	public Location getLastLoc() {
-		Location bestResult = null;
-
-		long bestTime = Long.MIN_VALUE;
-		long minTime = System.currentTimeMillis() - (60 * 60 * 1000); // 1 hr
-		float bestAccuracy = Float.MAX_VALUE;
-
-		final List<String> matchingProviders = mManager.getAllProviders();
-		for (String provider : matchingProviders) {
-			final Location location = mManager.getLastKnownLocation(provider);
-
-			if (location != null) {
-				float accuracy = location.getAccuracy();
-				long time = location.getTime();
-
-				if ((time > minTime && accuracy < bestAccuracy)) {
-					bestResult = location;
-					bestAccuracy = accuracy;
-					bestTime = time;
-				} else if (time < minTime && bestAccuracy == Float.MAX_VALUE && time > bestTime) {
-					bestResult = location;
-					bestTime = time;
-				}
-			}
+	public LatLng getLastLoc() {
+		final Location lastLocation = mManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		if (lastLocation == null) {
+			return null;
 		}
 
-		return bestResult;
+		return new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
 	}
 
 	/**

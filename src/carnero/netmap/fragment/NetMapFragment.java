@@ -78,6 +78,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		super.onResume();
 
 		mGeo = App.getGeolocation();
+		mLastLocation = mGeo.getLastLoc();
 
 		mBtsMarkersEnabled = Preferences.isSetMarkers(getActivity());
 		initializeMap();
@@ -181,43 +182,27 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	}
 
 	public void setMyMarker() {
-		final LatLng location = getMyLocation();
-		if (location == null) {
+		if (mLastLocation == null) {
 			return;
 		}
 
 		// my current position
 		if (mMyMarker == null) {
 			final MarkerOptions markerOpts = new MarkerOptions();
-			markerOpts.position(location);
+			markerOpts.position(mLastLocation);
 			markerOpts.icon(BitmapDescriptorFactory.fromResource(R.drawable.pin_my));
 			markerOpts.anchor(0.5f, 0.5f);
 
 			mMyMarker = mMap.addMarker(markerOpts);
 		} else {
-			mMyMarker.setPosition(location);
+			mMyMarker.setPosition(mLastLocation);
 		}
 
 		if (!mCentered) {
-			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, mZoomDefault));
+			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, mZoomDefault));
 
 			mCentered = true;
 		}
-	}
-
-	public LatLng getMyLocation() {
-		LatLng location = mLastLocation;
-
-		if (location == null) {
-			final Location loc = mGeo.getLastLoc();
-			if (loc == null) {
-				return null;
-			}
-
-			location = new LatLng(loc.getLatitude(), loc.getLongitude());
-		}
-
-		return location;
 	}
 
 	private void setMapTransparent(ViewGroup group) {
@@ -313,12 +298,10 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	}
 
 	public void setConnection() {
-		final LatLng location = getMyLocation();
-
 		if (mMap == null) {
 			return;
 		}
-		if (!mBtsMarkersEnabled || mLastBts == null || mLastBts.location == null || location == null) {
+		if (!mBtsMarkersEnabled || mLastBts == null || mLastBts.location == null || mLastLocation == null) {
 			removeConnection();
 			return;
 		}
@@ -329,13 +312,13 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			polylineOpts.width(getResources().getDimension(R.dimen.connection_width));
 			polylineOpts.color(getResources().getColor(R.color.connection_current));
 			polylineOpts.add(mLastBts.location);
-			polylineOpts.add(location);
+			polylineOpts.add(mLastLocation);
 
 			mConnectionCurrent = mMap.addPolyline(polylineOpts);
 		} else {
 			final List<LatLng> points = new ArrayList<LatLng>();
 			points.add(mLastBts.location);
-			points.add(location);
+			points.add(mLastLocation);
 
 			mConnectionCurrent.setPoints(points);
 		}
