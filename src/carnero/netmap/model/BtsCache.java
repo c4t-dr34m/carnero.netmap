@@ -130,6 +130,10 @@ public class BtsCache {
 		return list;
 	}
 
+	public static int size() {
+		return mCache.size();
+	}
+
 	private static void notifyListeners(Bts bts) {
 		for (OnBtsCacheChangedListener listener : mListeners) {
 			listener.onBtsCacheChanged(bts);

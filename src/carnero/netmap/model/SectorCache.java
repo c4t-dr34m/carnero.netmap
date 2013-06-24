@@ -79,6 +79,10 @@ public class SectorCache {
 		return list;
 	}
 
+	public static int size() {
+		return mCache.size();
+	}
+
 	private static void notifyListeners(Sector sector) {
 		for (OnSectorCacheChangedListener listener : mListeners) {
 			listener.onSectorCacheChanged(sector);

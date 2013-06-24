@@ -97,7 +97,8 @@ public class MainService extends Service {
 			mWiFi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 		}
 
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder sbShort = new StringBuilder();
+		final StringBuilder sbLong = new StringBuilder();
 
 		long time = System.currentTimeMillis();
 		// final int wifi = mWiFi.getWifiState();
@@ -117,24 +118,29 @@ public class MainService extends Service {
 			SectorCache.update(LocationUtil.getSectorXY(position), type);
 		}
 
-		sb.append(opName);
-		sb.append(" ");
-		sb.append(mNetworkTypes[type]);
+		sbShort.append(opName);
+		sbShort.append(" ");
+		sbShort.append(mNetworkTypes[type]);
+
+		sbLong.append(sbShort);
+		sbLong.append("\n");
 
 		if (cell instanceof GsmCellLocation) {
 			final GsmCellLocation gsmCell = (GsmCellLocation) cell;
 			final Bts bts = BtsCache.update(operator, gsmCell.getLac(), gsmCell.getCid(), type);
 
 			if (bts != null) {
-				sb.append(" [");
-				sb.append(bts.toString());
-				sb.append("]");
+				sbLong.append("current cell: ");
+				sbLong.append(bts.toString());
+				sbLong.append("\n");
 
 				bts.getLocation(mLocationListener);
 			}
 		} else if (cell instanceof CdmaCellLocation) {
 			Log.w(Constants.TAG, "CDMA location not implemented");
 		}
+
+		sbLong.append("collected sectors: " + SectorCache.size());
 
 		if (mNotificationManager != null) {
 			final Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -144,10 +150,12 @@ public class MainService extends Service {
 			nb.setOngoing(true);
 			nb.setWhen(time);
 			nb.setContentTitle(getString(R.string.app_name));
-			nb.setContentText(sb.toString());
+			nb.setContentText(sbShort.toString());
 			nb.setContentIntent(intent);
+			final Notification.BigTextStyle bs = new Notification.BigTextStyle(nb);
+			bs.bigText(sbLong.toString());
 
-			mNotificationManager.notify(Constants.NOTIFICATION_ID, nb.build());
+			mNotificationManager.notify(Constants.NOTIFICATION_ID, bs.build());
 		}
 	}
 
