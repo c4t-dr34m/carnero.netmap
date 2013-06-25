@@ -19,9 +19,9 @@ public class Constants {
 	public static final String GEO_PASSIVE_INTENT = "carnero.netmap.GEO_PASSIVE";
 
 	// BTS circle sections
-	public static final double SECTOR_WIDTH = 0.0020; // longitude
-	public static final double SECTOR_HEIGHT = 0.0015; // latitude
-	public static final double SECTOR_HEIGHT_CROP = 0.0015 / 4.0; // latitude
+	public static final double SECTOR_WIDTH = 0.0040; // longitude
+	public static final double SECTOR_HEIGHT = 0.0030; // latitude
+	public static final double SECTOR_HEIGHT_CROP = SECTOR_HEIGHT / 4.0; // latitude
 
 	// useful constants
 	public static final double DEG_TO_RAD = Math.PI / 180;

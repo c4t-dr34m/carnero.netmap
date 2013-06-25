@@ -41,7 +41,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	private boolean mBtsMarkersEnabled = true;
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
 	private HashMap<XY, Polygon> mCoveragePolygons = new HashMap<XY, Polygon>();
-	private float mZoomDefault = 16f;
+	private float mZoomDefault = 14f;
 	//
 	final private StatusListener mListener = new StatusListener();
 
