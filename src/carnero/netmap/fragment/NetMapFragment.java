@@ -31,7 +31,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 	private Geo mGeo;
 	private GoogleMap mMap;
-	private boolean mCentered = false;
+	private boolean mCentering = true;
 	private TelephonyManager mTelephony;
 	private LatLng mLastLocation;
 	private Bts mLastBts;
@@ -113,9 +113,27 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	}
 
 	@Override
+	public void onPrepareOptionsMenu(Menu menu) {
+		final MenuItem item = menu.findItem(R.id.menu_markers);
+		if (mBtsMarkersEnabled) {
+			item.setIcon(R.drawable.ic_ab_markers_off);
+		} else {
+			item.setIcon(R.drawable.ic_ab_markers);
+		}
+
+		super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.menu_markers) {
 			mBtsMarkersEnabled = Preferences.switchMarkers(getActivity());
+			if (mBtsMarkersEnabled) {
+				item.setIcon(R.drawable.ic_ab_markers_off);
+			} else {
+				item.setIcon(R.drawable.ic_ab_markers);
+			}
+
 			checkMarkers();
 
 			return true;
@@ -147,6 +165,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 			mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 			mMap.setMyLocationEnabled(false);
+			mMap.setOnCameraChangeListener(new MapMoveListener());
 
 			if (mMap.getMaxZoomLevel() < mZoomDefault) {
 				mZoomDefault = mMap.getMaxZoomLevel();
@@ -198,10 +217,8 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			mMyMarker.setPosition(mLastLocation);
 		}
 
-		if (!mCentered) {
+		if (mCentering) {
 			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, mZoomDefault));
-
-			mCentered = true;
 		}
 	}
 
@@ -379,6 +396,22 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			intent.setData(Uri.parse(url));
 
 			startActivity(intent);
+		}
+	}
+
+	public class MapMoveListener implements GoogleMap.OnCameraChangeListener {
+
+		public void onCameraChange(CameraPosition position) {
+			if (mLastLocation == null) {
+				return;
+			}
+
+			final double distance = LocationUtil.getDistance(mLastLocation, position.target);
+			if (distance > 20) {
+				mCentering = false;
+			} else {
+				mCentering = true;
+			}
 		}
 	}
 
