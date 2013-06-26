@@ -128,6 +128,8 @@ public class Geo {
 
 		public void onLocationChanged(Location location) {
 			mLocations.put(provider, location);
+
+			selectBestLocation();
 		}
 
 		public void onProviderDisabled(String provider) {
