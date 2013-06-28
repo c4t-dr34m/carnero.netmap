@@ -32,6 +32,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	private Geo mGeo;
 	private GoogleMap mMap;
 	private boolean mCentering = true;
+	private boolean mCentered = false;
 	private TelephonyManager mTelephony;
 	private LatLng mLastLocation;
 	private Bts mLastBts;
@@ -79,6 +80,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 		mGeo = App.getGeolocation();
 		mLastLocation = mGeo.getLastLoc();
+		mCentered = false;
 
 		mBtsMarkersEnabled = Preferences.isSetMarkers(getActivity());
 		initializeMap();
@@ -218,7 +220,12 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		}
 
 		if (mCentering) {
-			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, mZoomDefault));
+			if (mCentered) {
+				mMap.animateCamera(CameraUpdateFactory.newLatLng(mLastLocation));
+			} else {
+				mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, mZoomDefault));
+				mCentered = true;
+			}
 		}
 	}
 

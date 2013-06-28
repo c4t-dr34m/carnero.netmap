@@ -37,7 +37,7 @@ public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
 	}
 
 	public LatLng doInBackground(Void... params) {
-		final String url = Constants.URL_BASE_GSMWEB + Long.toHexString(mBts.cid).toUpperCase();
+		final String url = Constants.URL_BASE_GSMWEB + Long.toHexString(mBts.cid).toUpperCase() + "17";
 		String data = null;
 
 		try {
