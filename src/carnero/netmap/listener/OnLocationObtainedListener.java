@@ -4,5 +4,5 @@ import carnero.netmap.model.Bts;
 
 public interface OnLocationObtainedListener {
 
-	public void onLocationObtained(Bts bts);
+    public void onLocationObtained(Bts bts);
 }

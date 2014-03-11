@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NetMap</string>
-	<!-- menu -->
-	<string name="menu_markers">Switch markers</string>
-	<!-- notification -->
-	<string name="notification_gsmweb">About BTS</string>
+    <string name="app_name">NetMap</string>
+    <!-- menu -->
+    <string name="menu_markers">Switch markers</string>
+    <!-- notification -->
+    <string name="notification_gsmweb">About BTS</string>
 </resources>

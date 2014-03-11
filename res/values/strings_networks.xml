@@ -1,21 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string-array name="network_types">
-		<item>UNKNOWN</item> <!-- 0 -->
-		<item>GPRS</item> <!-- 1 -->
-		<item>EDGE</item> <!-- 2 -->
-		<item>UMTS</item> <!-- 3 -->
-		<item>CDMA</item> <!-- 4 -->
-		<item>EVDO 0</item> <!-- 5 -->
-		<item>EVDO A</item> <!-- 6 -->
-		<item>1xRTT</item> <!-- 7 -->
-		<item>HSDPA</item> <!-- 8 -->
-		<item>HSUPA</item> <!-- 9 -->
-		<item>HSPA</item> <!-- 10 -->
-		<item>iDEN</item> <!-- 11 -->
-		<item>EVDO B</item> <!-- 12 -->
-		<item>LTE</item> <!-- 13 -->
-		<item>eHRPD</item> <!-- 14 -->
-		<item>HSPA+</item> <!-- 15 -->
-	</string-array>
+    <string-array name="network_types">
+        <item>UNKNOWN</item>
+        <!-- 0 -->
+        <item>GPRS</item>
+        <!-- 1 -->
+        <item>EDGE</item>
+        <!-- 2 -->
+        <item>UMTS</item>
+        <!-- 3 -->
+        <item>CDMA</item>
+        <!-- 4 -->
+        <item>EVDO 0</item>
+        <!-- 5 -->
+        <item>EVDO A</item>
+        <!-- 6 -->
+        <item>1xRTT</item>
+        <!-- 7 -->
+        <item>HSDPA</item>
+        <!-- 8 -->
+        <item>HSUPA</item>
+        <!-- 9 -->
+        <item>HSPA</item>
+        <!-- 10 -->
+        <item>iDEN</item>
+        <!-- 11 -->
+        <item>EVDO B</item>
+        <!-- 12 -->
+        <item>LTE</item>
+        <!-- 13 -->
+        <item>eHRPD</item>
+        <!-- 14 -->
+        <item>HSPA+</item>
+        <!-- 15 -->
+    </string-array>
 </resources>

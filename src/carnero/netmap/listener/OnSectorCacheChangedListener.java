@@ -4,5 +4,5 @@ import carnero.netmap.model.Sector;
 
 public interface OnSectorCacheChangedListener {
 
-	public void onSectorCacheChanged(Sector sector);
+    public void onSectorCacheChanged(Sector sector);
 }

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<!-- basic -->
-	<color name="white">@android:color/white</color>
-	<color name="black">@android:color/black</color>
-	<color name="none">@android:color/transparent</color>
-	<!-- transparent -->
-	<color name="black_transparent">#88000000</color>
-	<!-- connection -->
-	<color name="connection_current">#AA000000</color>
-	<!-- coverage -->
-	<color name="sector_border">#AAAAAAAA</color>
-	<color name="connection_l1">#66AE0100</color>
-	<color name="connection_l2">#66832B00</color>
-	<color name="connection_l3">#66575700</color>
-	<color name="connection_l4">#662B8300</color>
-	<color name="connection_l5">#6601AD00</color>
+    <!-- basic -->
+    <color name="white">@android:color/white</color>
+    <color name="black">@android:color/black</color>
+    <color name="none">@android:color/transparent</color>
+    <!-- transparent -->
+    <color name="black_transparent">#88000000</color>
+    <!-- connection -->
+    <color name="connection_current">#AA000000</color>
+    <!-- coverage -->
+    <color name="sector_border">#AAAAAAAA</color>
+    <color name="connection_l1">#66AE0100</color>
+    <color name="connection_l2">#66832B00</color>
+    <color name="connection_l3">#66575700</color>
+    <color name="connection_l4">#662B8300</color>
+    <color name="connection_l5">#6601AD00</color>
 </resources>

@@ -4,5 +4,5 @@ import android.location.Location;
 
 public interface SimpleGeoReceiver {
 
-	public void onLocationChanged(Location location);
+    public void onLocationChanged(Location location);
 }
