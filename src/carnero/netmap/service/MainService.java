@@ -12,8 +12,9 @@ import android.content.IntentFilter;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.telephony.CellInfo;
@@ -40,18 +41,21 @@ import carnero.netmap.model.SectorCache;
 
 public class MainService extends Service {
 
+    private static boolean sRunning = false;
+    //
     private TelephonyManager mTelephonyManager;
+    private ConnectivityManager mConnectivityManager;
     private LocationManager mLocationManager;
     private AlarmManager mAlarmManager;
     private NotificationManager mNotificationManager;
-    private WifiManager mWiFi;
-    private LatLng mLastLocation;
-    private Long mLastLocationTime;
+    private Location mLastLocation;
+    private LatLng mLastLatLng;
     private String[] mNetworkTypes;
     private PendingIntent mWakeupPending;
     private PendingIntent mPassivePending;
     private PendingIntent mOneShotPending;
     private int[] mIcons = new int[5];
+    //
     final private StatusListener mListener = new StatusListener();
     final private LocationListener mLocationListener = new LocationListener();
     final private WakeupReceiver mWakeupReceiver = new WakeupReceiver();
@@ -69,6 +73,7 @@ public class MainService extends Service {
         mIcons[4] = R.drawable.ic_notification_l5;
 
         mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        mConnectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mNetworkTypes = getResources().getStringArray(R.array.network_types);
@@ -88,10 +93,14 @@ public class MainService extends Service {
 
         requestPassiveLocation();
         startForeground(Constants.NOTIFICATION_ID, builder.build());
+
+        sRunning = true;
     }
 
     @Override
     public void onDestroy() {
+        sRunning = false;
+
         cancelPassiveLocation();
         unregisterReceiver(mPassiveReceiver);
         unregisterReceiver(mWakeupReceiver);
@@ -105,6 +114,10 @@ public class MainService extends Service {
         return null;
     }
 
+    public static boolean isRunning() {
+        return sRunning;
+    }
+
     // network
 
     public void getNetworkInfo() {
@@ -112,16 +125,22 @@ public class MainService extends Service {
     }
 
     public void getNetworkInfo(CellLocation cell) {
-        if (mWiFi == null) {
-            mWiFi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        NetworkInfo wifi = mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        if (wifi != null && wifi.isConnected()) {
+            /*
+             * Do not save network type when there is WiFi connection
+             * Phone with WiFi connection doesn't use the best available network type
+             */
+            stopSelf();
+
+            return;
         }
 
         final StringBuilder sbShort = new StringBuilder();
         final StringBuilder sbLong = new StringBuilder();
 
         PendingIntent gsmWeb = null;
-        long time = System.currentTimeMillis();
-        // final int wifi = mWiFi.getWifiState();
+        final long time = System.currentTimeMillis();
         final String operator = mTelephonyManager.getNetworkOperator();
         // final String opName = mTelephonyManager.getNetworkOperatorName();
         // final boolean roaming = mTelephonyManager.isNetworkRoaming();
@@ -132,8 +151,8 @@ public class MainService extends Service {
             cell = mTelephonyManager.getCellLocation();
         }
 
-        if (mLastLocation != null) {
-            final LatLng position = new LatLng(mLastLocation.latitude, mLastLocation.longitude);
+        if (mLastLatLng != null) {
+            final LatLng position = new LatLng(mLastLatLng.latitude, mLastLatLng.longitude);
 
             SectorCache.update(LocationUtil.getSectorXY(position), type);
         }
@@ -213,8 +232,12 @@ public class MainService extends Service {
         if (location == null) {
             return;
         }
-        mLastLocation = new LatLng(location.getLatitude(), location.getLongitude());
-        mLastLocationTime = location.getTime();
+        if (mLastLocation != null && mLastLocation.distanceTo(location) < 75) {
+            return;
+        }
+
+        mLastLocation = location;
+        mLastLatLng = new LatLng(location.getLatitude(), location.getLongitude());
 
         getNetworkInfo();
 
