@@ -27,13 +27,6 @@ public class Sector {
         this.network = network;
     }
 
-    public Sector(LatLng position, int network) {
-        this.index = LocationUtil.getSectorXY(position);
-        this.center = LocationUtil.getSectorCenter(index);
-        this.corners = LocationUtil.getSectorHexagon(center);
-        this.network = network;
-    }
-
     public LatLng getCenter() {
         if (center == null) {
             center = LocationUtil.getSectorCenter(index.x, index.y);
