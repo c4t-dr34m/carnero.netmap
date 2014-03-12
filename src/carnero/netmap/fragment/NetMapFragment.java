@@ -1,9 +1,7 @@
 package carnero.netmap.fragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.CellInfo;
 import android.telephony.CellLocation;
@@ -67,9 +65,11 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
     private Marker mMyMarker;
     private Polyline mConnectionCurrent;
     private int[] mFillColors = new int[5];
+    private int mTouchColor;
     private boolean mBtsMarkersEnabled = true;
     private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
     private HashMap<XY, Polygon> mCoveragePolygons = new HashMap<XY, Polygon>();
+    private Polygon mCoverageTouch;
     private float mZoomDefault = 14f;
     //
     final private StatusListener mListener = new StatusListener();
@@ -87,6 +87,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
         mTelephony = (TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE);
 
+        mTouchColor = getResources().getColor(R.color.connection_touch);
         mFillColors[0] = getResources().getColor(R.color.connection_l1);
         mFillColors[1] = getResources().getColor(R.color.connection_l2);
         mFillColors[2] = getResources().getColor(R.color.connection_l3);
@@ -200,6 +201,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
             mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             mMap.setMyLocationEnabled(false);
             mMap.setOnCameraChangeListener(new MapMoveListener());
+            mMap.setOnMapClickListener(new CoverageClickListener());
 
             if (mMap.getMaxZoomLevel() < mZoomDefault) {
                 mZoomDefault = mMap.getMaxZoomLevel();
@@ -416,25 +418,24 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
     // classes
 
-    public class BtsClickListener implements View.OnClickListener {
-
-        private int mCid;
-
-        public BtsClickListener(int cid) {
-            mCid = cid;
-        }
+    public class CoverageClickListener implements GoogleMap.OnMapClickListener {
 
         @Override
-        public void onClick(View v) {
-            if (mCid <= 0) {
-                return;
+        public void onMapClick(LatLng latLng) {
+            final Sector sector = new Sector();
+            sector.center = LocationUtil.getSectorCenter(LocationUtil.getSectorXY(latLng));
+            sector.corners = LocationUtil.getSectorHexagon(sector.center);
+
+            final PolygonOptions polygonOpts = new PolygonOptions();
+            polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
+            polygonOpts.strokeColor(getResources().getColor(R.color.sector_border));
+            polygonOpts.fillColor(mTouchColor);
+            polygonOpts.addAll(sector.getCorners());
+
+            if (mCoverageTouch != null) {
+                mCoverageTouch.remove();
             }
-
-            String url = Constants.URL_BASE_GSMWEB + Integer.toHexString(mCid).toUpperCase();
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(url));
-
-            startActivity(intent);
+            mCoverageTouch = mMap.addPolygon(polygonOpts);
         }
     }
 

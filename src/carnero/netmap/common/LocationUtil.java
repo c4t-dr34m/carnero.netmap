@@ -29,16 +29,30 @@ public class LocationUtil {
         final ArrayList<LatLng> hex = getSectorHexagon(center);
         final ArrayList<LatLng> sqr = getSectorSquare(center);
 
-        if (inTriangle(position, hex.get(0), hex.get(1), sqr.get(0))) {
-            xy.x++;
-            xy.y++;
-        } else if (inTriangle(position, hex.get(2), hex.get(3), sqr.get(1))) {
-            xy.x++;
-            xy.y--;
-        } else if (inTriangle(position, hex.get(3), hex.get(4), sqr.get(2))) {
-            xy.y--;
-        } else if (inTriangle(position, hex.get(5), hex.get(0), sqr.get(3))) {
-            xy.y++;
+        if ((xy.y % 2) == 0) {
+            if (inTriangle(position, hex.get(0), hex.get(1), sqr.get(0))) {
+                xy.x++;
+                xy.y++;
+            } else if (inTriangle(position, hex.get(2), hex.get(3), sqr.get(1))) {
+                xy.x++;
+                xy.y--;
+            } else if (inTriangle(position, hex.get(3), hex.get(4), sqr.get(2))) {
+                xy.y--;
+            } else if (inTriangle(position, hex.get(5), hex.get(0), sqr.get(3))) {
+                xy.y++;
+            }
+        } else {
+            if (inTriangle(position, hex.get(0), hex.get(1), sqr.get(0))) {
+                xy.x++;
+                xy.y++;
+            } else if (inTriangle(position, hex.get(2), hex.get(3), sqr.get(1))) {
+                xy.y--;
+            } else if (inTriangle(position, hex.get(3), hex.get(4), sqr.get(2))) {
+                xy.x--;
+                xy.y--;
+            } else if (inTriangle(position, hex.get(5), hex.get(0), sqr.get(3))) {
+                xy.y++;
+            }
         }
 
         return xy;
