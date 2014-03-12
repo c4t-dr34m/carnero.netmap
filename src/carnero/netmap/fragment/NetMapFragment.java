@@ -1,5 +1,7 @@
 package carnero.netmap.fragment;
 
+import java.util.*;
+
 import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
@@ -10,52 +12,25 @@ import android.telephony.TelephonyManager;
 import android.telephony.cdma.CdmaCellLocation;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 
+import carnero.netmap.App;
+import carnero.netmap.R;
+import carnero.netmap.activity.MainActivity;
+import carnero.netmap.common.*;
+import carnero.netmap.iface.IBackHandler;
+import carnero.netmap.listener.OnBtsCacheChangedListener;
+import carnero.netmap.listener.OnSectorCacheChangedListener;
+import carnero.netmap.model.*;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polygon;
-import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, OnBtsCacheChangedListener, OnSectorCacheChangedListener, IBackHandler {
 
-import carnero.netmap.App;
-import carnero.netmap.R;
-import carnero.netmap.common.Constants;
-import carnero.netmap.common.Geo;
-import carnero.netmap.common.LocationUtil;
-import carnero.netmap.common.Preferences;
-import carnero.netmap.common.SimpleGeoReceiver;
-import carnero.netmap.common.Util;
-import carnero.netmap.listener.OnBtsCacheChangedListener;
-import carnero.netmap.listener.OnSectorCacheChangedListener;
-import carnero.netmap.model.Bts;
-import carnero.netmap.model.BtsCache;
-import carnero.netmap.model.Sector;
-import carnero.netmap.model.SectorCache;
-import carnero.netmap.model.XY;
-
-public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, OnBtsCacheChangedListener, OnSectorCacheChangedListener {
-
-    private Geo mGeo;
+	private Geo mGeo;
     private GoogleMap mMap;
     private boolean mCentering = true;
     private boolean mCentered = false;
@@ -177,7 +152,22 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
         return false;
     }
 
-    public void onBtsCacheChanged(Bts bts) {
+	@Override
+	public boolean onBackPressed() {
+		MainActivity activity = (MainActivity)getActivity();
+		activity.hideInfo();
+
+		if (mCoverageTouch != null) {
+			mCoverageTouch.remove();
+			mCoverageTouch = null;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public void onBtsCacheChanged(Bts bts) {
         addBts(bts);
     }
 
@@ -422,9 +412,9 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
         @Override
         public void onMapClick(LatLng latLng) {
-            final Sector sector = new Sector();
-            sector.center = LocationUtil.getSectorCenter(LocationUtil.getSectorXY(latLng));
-            sector.corners = LocationUtil.getSectorHexagon(sector.center);
+	        /* Temporarily disabled, nothing to display
+	        final XY xy = LocationUtil.getSectorXY(latLng);
+            final Sector sector = SectorCache.get(xy);
 
             final PolygonOptions polygonOpts = new PolygonOptions();
             polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
@@ -436,6 +426,10 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
                 mCoverageTouch.remove();
             }
             mCoverageTouch = mMap.addPolygon(polygonOpts);
+
+	        MainActivity activity = (MainActivity) getActivity();
+	        activity.displayInfo(sector);
+	        */
         }
     }
 

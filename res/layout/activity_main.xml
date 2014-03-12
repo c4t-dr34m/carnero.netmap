@@ -1,10 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
 
-    <FrameLayout
-        android:id="@+id/fragment_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+	<FrameLayout
+		android:id="@+id/fragment_container"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent" />
+
+	<RelativeLayout
+		android:id="@+id/sector_info"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:paddingTop="8dp"
+		android:paddingRight="16dp"
+		android:paddingBottom="8dp"
+		android:paddingLeft="16dp"
+		android:visibility="gone"
+		android:background="@color/black_semi">
+
+		<TextView
+			style="@style/SectorInfo.Label"
+			android:id="@+id/sector_label"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" />
+	</RelativeLayout>
 </RelativeLayout>
