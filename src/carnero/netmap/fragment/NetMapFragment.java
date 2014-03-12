@@ -412,7 +412,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
         @Override
         public void onMapClick(LatLng latLng) {
-	        /* Temporarily disabled, nothing to display
 	        final XY xy = LocationUtil.getSectorXY(latLng);
             final Sector sector = SectorCache.get(xy);
 
@@ -427,6 +426,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
             }
             mCoverageTouch = mMap.addPolygon(polygonOpts);
 
+	        /* Temporarily disabled, nothing to display
 	        MainActivity activity = (MainActivity) getActivity();
 	        activity.displayInfo(sector);
 	        */
