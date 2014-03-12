@@ -112,6 +112,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
         mBtsMarkersEnabled = Preferences.isSetMarkers(getActivity());
         initializeMap();
+        setMyMarker();
 
         mGeo.addReceiver(this);
         SectorCache.addListener(this);
@@ -128,6 +129,9 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
         BtsCache.removeListener(this);
         SectorCache.removeListener(this);
+
+        mMyMarker.remove();
+        mMyMarker = null;
 
         mMap.clear();
         mMap = null;
