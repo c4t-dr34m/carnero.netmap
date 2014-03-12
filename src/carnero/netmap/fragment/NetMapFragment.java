@@ -413,9 +413,16 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
         @Override
         public void onMapClick(LatLng latLng) {
 	        final XY xy = LocationUtil.getSectorXY(latLng);
-            final Sector sector = SectorCache.get(xy);
 
-            final PolygonOptions polygonOpts = new PolygonOptions();
+	        Sector sector = SectorCache.get(xy);
+	        if (sector == null) {
+		        sector = new Sector();
+		        sector.index = xy;
+		        sector.center = LocationUtil.getSectorCenter(xy);
+		        sector.corners = LocationUtil.getSectorHexagon(sector.center);
+	        }
+
+	        final PolygonOptions polygonOpts = new PolygonOptions();
             polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
             polygonOpts.strokeColor(getResources().getColor(R.color.sector_border));
             polygonOpts.fillColor(mTouchColor);

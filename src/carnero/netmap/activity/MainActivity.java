@@ -2,6 +2,7 @@ package carnero.netmap.activity;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -10,6 +11,7 @@ import carnero.netmap.R;
 import carnero.netmap.fragment.NetMapFragment;
 import carnero.netmap.iface.IBackHandler;
 import carnero.netmap.model.Sector;
+import carnero.netmap.service.MainService;
 
 public class MainActivity extends Activity {
 
@@ -19,10 +21,10 @@ public class MainActivity extends Activity {
 	protected TextView vSectorLabel;
 
 	@Override
-    public void onCreate(Bundle state) {
-        super.onCreate(state);
+	public void onCreate(Bundle state) {
+		super.onCreate(state);
 
-        setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_main);
 
 		vSectorInfo = findViewById(R.id.sector_info);
 		vSectorLabel = (TextView)findViewById(R.id.sector_label);
@@ -31,11 +33,16 @@ public class MainActivity extends Activity {
 			mFragment = new NetMapFragment();
 
 			getFragmentManager()
-                    .beginTransaction()
+				.beginTransaction()
 				.replace(R.id.fragment_container, mFragment)
 				.commit();
-        }
-    }
+		}
+
+		if (!MainService.isRunning()) {
+			final Intent serviceIntent = new Intent(this, MainService.class);
+			startService(serviceIntent);
+		}
+	}
 
 	@Override
 	public void onBackPressed() {
