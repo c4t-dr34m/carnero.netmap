@@ -433,7 +433,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
             }
             mCoverageTouch = mMap.addPolygon(polygonOpts);
 
-	        /* Temporarily disabled, nothing to display
+	        /* Temporarily disabled; nothing to display
 	        MainActivity activity = (MainActivity) getActivity();
 	        activity.displayInfo(sector);
 	        */

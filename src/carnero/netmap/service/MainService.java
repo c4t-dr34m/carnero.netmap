@@ -1,10 +1,8 @@
 package carnero.netmap.service;
 
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
+import java.util.List;
+
+import android.app.*;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,10 +23,6 @@ import android.telephony.cdma.CdmaCellLocation;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 
-import com.google.android.gms.maps.model.LatLng;
-
-import java.util.List;
-
 import carnero.netmap.R;
 import carnero.netmap.activity.MainActivity;
 import carnero.netmap.common.Constants;
@@ -38,6 +32,7 @@ import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
 import carnero.netmap.model.SectorCache;
+import com.google.android.gms.maps.model.LatLng;
 
 public class MainService extends Service {
 
@@ -58,7 +53,6 @@ public class MainService extends Service {
     //
     final private StatusListener mListener = new StatusListener();
     final private LocationListener mLocationListener = new LocationListener();
-    final private WakeupReceiver mWakeupReceiver = new WakeupReceiver();
     final private PassiveLocationReceiver mPassiveReceiver = new PassiveLocationReceiver();
     final private OneShotLocationReceiver mOneShotReceiver = new OneShotLocationReceiver();
 
@@ -88,7 +82,6 @@ public class MainService extends Service {
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText("");
 
-        registerReceiver(mWakeupReceiver, new IntentFilter(Constants.GEO_WAKEUP_INTENT));
         registerReceiver(mPassiveReceiver, new IntentFilter(Constants.GEO_PASSIVE_INTENT));
 
         requestPassiveLocation();
@@ -97,13 +90,27 @@ public class MainService extends Service {
         sRunning = true;
     }
 
-    @Override
-    public void onDestroy() {
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		NetworkInfo wifi = mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		if (wifi == null || !wifi.isConnected()) {
+			boolean wakeup = intent.getBooleanExtra(Constants.EXTRA_WAKEUP, false);
+			if (wakeup) {
+				Log.d(Constants.TAG, "Wakeup requested...");
+
+				requestOneShotLocation();
+			}
+		}
+
+		return super.onStartCommand(intent, flags, startId);
+	}
+
+	@Override
+	public void onDestroy() {
         sRunning = false;
 
         cancelPassiveLocation();
         unregisterReceiver(mPassiveReceiver);
-        unregisterReceiver(mWakeupReceiver);
         mTelephonyManager.listen(mListener, PhoneStateListener.LISTEN_NONE);
 
         super.onDestroy();
@@ -277,19 +284,6 @@ public class MainService extends Service {
             }
 
             BtsCache.update(bts);
-        }
-    }
-
-    /**
-     * Receives wakeup request and try to get new location
-     */
-    private class WakeupReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.w(Constants.TAG, "Wake up call received");
-
-            requestOneShotLocation();
         }
     }
 
