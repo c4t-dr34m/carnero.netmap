@@ -220,7 +220,7 @@ public class MainService extends Service {
 
         final Criteria criteria = new Criteria();
         criteria.setCostAllowed(true);
-	    criteria.setAccuracy(Criteria.ACCURACY_HIGH);
+	    criteria.setAccuracy(Criteria.ACCURACY_FINE);
 	    criteria.setPowerRequirement(Criteria.POWER_LOW);
         criteria.setAltitudeRequired(false);
         criteria.setSpeedRequired(false);
@@ -313,8 +313,6 @@ public class MainService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.w(Constants.TAG, "New location received (one shot)");
-
-            unregisterReceiver(mOneShotReceiver);
 
             final Bundle extra = intent.getExtras();
             final Location location = (Location) extra.get(LocationManager.KEY_LOCATION_CHANGED);
