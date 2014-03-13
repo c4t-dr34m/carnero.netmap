@@ -19,6 +19,7 @@ public class Constants {
     public static final long GEO_TIME = 2500l; // 2.5 s
     public static final String GEO_WAKEUP_INTENT = "carnero.netmap.GEO_WAKEUP";
     public static final String GEO_PASSIVE_INTENT = "carnero.netmap.GEO_PASSIVE";
+	public static final String GEO_ONESHOT_INTENT = "carnero.netmap.GEO_ONESHOT";
 
     // BTS circle sections
     public static final double SECTOR_WIDTH = 0.0060; // longitude

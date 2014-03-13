@@ -83,6 +83,7 @@ public class MainService extends Service {
                 .setContentText("");
 
         registerReceiver(mPassiveReceiver, new IntentFilter(Constants.GEO_PASSIVE_INTENT));
+	    registerReceiver(mOneShotReceiver, new IntentFilter(Constants.GEO_ONESHOT_INTENT));
 
         requestPassiveLocation();
         startForeground(Constants.NOTIFICATION_ID, builder.build());
@@ -111,7 +112,8 @@ public class MainService extends Service {
 
         cancelPassiveLocation();
         unregisterReceiver(mPassiveReceiver);
-        mTelephonyManager.listen(mListener, PhoneStateListener.LISTEN_NONE);
+		unregisterReceiver(mOneShotReceiver);
+		mTelephonyManager.listen(mListener, PhoneStateListener.LISTEN_NONE);
 
         super.onDestroy();
     }
@@ -213,13 +215,13 @@ public class MainService extends Service {
     // location
 
     public void requestOneShotLocation() {
-        final Intent intent = new Intent(Constants.GEO_PASSIVE_INTENT);
-        mOneShotPending = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+	    final Intent intent = new Intent(Constants.GEO_ONESHOT_INTENT);
+	    mOneShotPending = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         final Criteria criteria = new Criteria();
         criteria.setCostAllowed(true);
-        criteria.setAccuracy(Criteria.ACCURACY_MEDIUM);
-        criteria.setPowerRequirement(Criteria.POWER_LOW);
+	    criteria.setAccuracy(Criteria.ACCURACY_HIGH);
+	    criteria.setPowerRequirement(Criteria.POWER_LOW);
         criteria.setAltitudeRequired(false);
         criteria.setSpeedRequired(false);
         mLocationManager.requestSingleUpdate(criteria, mOneShotPending);
