@@ -5,4 +5,6 @@
     <string name="menu_markers">Switch markers</string>
     <!-- notification -->
     <string name="notification_gsmweb">About BTS</string>
+	<string name="notification_location_fine">Fine</string>
+	<string name="notification_location_coarse">Coarse</string>
 </resources>

@@ -73,6 +73,14 @@ public class MainService extends Service {
         mNetworkTypes = getResources().getStringArray(R.array.network_types);
         mTelephonyManager.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
 
+	    NetworkInfo wifi = mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+	    if (wifi != null && wifi.isConnected()) { // do not start when on WiFi
+		    return;
+	    }
+
+	    registerReceiver(mPassiveReceiver, new IntentFilter(Constants.GEO_PASSIVE_INTENT));
+	    registerReceiver(mOneShotReceiver, new IntentFilter(Constants.GEO_ONESHOT_INTENT));
+
         // notification
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         final Notification.Builder builder = new Notification.Builder(this)
@@ -81,9 +89,6 @@ public class MainService extends Service {
                 .setTicker(getString(R.string.app_name))
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText("");
-
-        registerReceiver(mPassiveReceiver, new IntentFilter(Constants.GEO_PASSIVE_INTENT));
-	    registerReceiver(mOneShotReceiver, new IntentFilter(Constants.GEO_ONESHOT_INTENT));
 
         requestPassiveLocation();
         startForeground(Constants.NOTIFICATION_ID, builder.build());
@@ -111,8 +116,16 @@ public class MainService extends Service {
         sRunning = false;
 
         cancelPassiveLocation();
-        unregisterReceiver(mPassiveReceiver);
-		unregisterReceiver(mOneShotReceiver);
+		try {
+			unregisterReceiver(mPassiveReceiver);
+		} catch (IllegalArgumentException iae) {
+			// pokemon
+		}
+		try {
+			unregisterReceiver(mOneShotReceiver);
+		} catch (IllegalArgumentException iae) {
+			// pokemon
+		}
 		mTelephonyManager.listen(mListener, PhoneStateListener.LISTEN_NONE);
 
         super.onDestroy();
@@ -204,6 +217,7 @@ public class MainService extends Service {
             if (gsmWeb != null) {
                 nb.addAction(android.R.drawable.ic_menu_search, getString(R.string.notification_gsmweb), gsmWeb);
             }
+	        nb.addAction(android.R.drawable.ic_menu_mylocation, getString(R.string.notification_location_fine), null);
 
             final Notification.BigTextStyle ns = new Notification.BigTextStyle(nb);
             ns.bigText(sbLong.toString());
@@ -234,7 +248,9 @@ public class MainService extends Service {
     }
 
     public void cancelPassiveLocation() {
-        mLocationManager.removeUpdates(mPassivePending);
+	    if (mPassivePending != null) {
+		    mLocationManager.removeUpdates(mPassivePending);
+	    }
     }
 
     public void onLocationChanged(Location location) {
@@ -319,7 +335,9 @@ public class MainService extends Service {
 
             onLocationChanged(location);
 
-            mLocationManager.removeUpdates(mOneShotPending);
+	        if (mOneShotPending != null) {
+		        mLocationManager.removeUpdates(mOneShotPending);
+	        }
         }
     }
 }
