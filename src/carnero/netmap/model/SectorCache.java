@@ -3,6 +3,7 @@ package carnero.netmap.model;
 import java.util.*;
 
 import carnero.netmap.App;
+import carnero.netmap.common.CellComparator;
 import carnero.netmap.common.Util;
 import carnero.netmap.database.SectorDb;
 import carnero.netmap.listener.OnSectorCacheChangedListener;
@@ -81,6 +82,7 @@ public class SectorCache {
 				list.add((Sector)entry.getValue());
 			}
 		}
+		Collections.sort(list, new CellComparator());
 
 		return list;
 	}

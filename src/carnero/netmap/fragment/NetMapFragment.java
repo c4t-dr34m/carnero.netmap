@@ -40,6 +40,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	private Marker mMyMarker;
 	private Polyline mConnectionCurrent;
 	private int[] mFillColors = new int[5];
+	private int[] mStrokeColors = new int[5];
 	private int mTouchColor;
 	private boolean mBtsMarkersEnabled = true;
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
@@ -62,12 +63,17 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 		mTelephony = (TelephonyManager)getActivity().getSystemService(Context.TELEPHONY_SERVICE);
 
-		mTouchColor = getResources().getColor(R.color.connection_touch);
-		mFillColors[0] = getResources().getColor(R.color.connection_l1);
-		mFillColors[1] = getResources().getColor(R.color.connection_l2);
-		mFillColors[2] = getResources().getColor(R.color.connection_l3);
-		mFillColors[3] = getResources().getColor(R.color.connection_l4);
-		mFillColors[4] = getResources().getColor(R.color.connection_l5);
+		mTouchColor = getResources().getColor(R.color.cell_touch);
+		mFillColors[0] = getResources().getColor(R.color.cell_l1);
+		mFillColors[1] = getResources().getColor(R.color.cell_l2);
+		mFillColors[2] = getResources().getColor(R.color.cell_l3);
+		mFillColors[3] = getResources().getColor(R.color.cell_l4);
+		mFillColors[4] = getResources().getColor(R.color.cell_l5);
+		mStrokeColors[0] = getResources().getColor(R.color.stroke_l1);
+		mStrokeColors[1] = getResources().getColor(R.color.stroke_l2);
+		mStrokeColors[2] = getResources().getColor(R.color.stroke_l3);
+		mStrokeColors[3] = getResources().getColor(R.color.stroke_l4);
+		mStrokeColors[4] = getResources().getColor(R.color.stroke_l5);
 	}
 
 	@Override
@@ -331,6 +337,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	private void addSector(Sector sector) {
 		final int level = Util.getNetworkLevel(sector.network);
 		final int fill = mFillColors[level - 1];
+		final int stroke = mStrokeColors[level - 1];
 
 		if (mCoveragePolygons.containsKey(sector.index)) {
 			mCoveragePolygons.get(sector.index).remove();
@@ -338,7 +345,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 		final PolygonOptions polygonOpts = new PolygonOptions();
 		polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
-		polygonOpts.strokeColor(getResources().getColor(R.color.sector_border));
+		polygonOpts.strokeColor(stroke);
 		polygonOpts.fillColor(fill);
 		polygonOpts.addAll(sector.getCorners());
 
