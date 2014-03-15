@@ -18,7 +18,8 @@ public class MainActivity extends Activity {
 	protected Fragment mFragment;
 	//
 	protected View vSectorInfo;
-	protected TextView vSectorLabel;
+	protected TextView vSectorCoords;
+	protected TextView vSectorNetwork;
 
 	@Override
 	public void onCreate(Bundle state) {
@@ -27,7 +28,8 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		vSectorInfo = findViewById(R.id.sector_info);
-		vSectorLabel = (TextView)findViewById(R.id.sector_label);
+		vSectorCoords = (TextView)findViewById(R.id.sector_coords);
+		vSectorNetwork = (TextView)findViewById(R.id.sector_network);
 
 		if (state == null) {
 			mFragment = new NetMapFragment();
@@ -57,7 +59,8 @@ public class MainActivity extends Activity {
 	}
 
 	public void displayInfo(Sector sector) {
-		vSectorLabel.setText(sector.index.x + "," + sector.index.y);
+		vSectorCoords.setText(sector.index.x + "," + sector.index.y);
+		vSectorNetwork.setText(getResources().getTextArray(R.array.network_types)[sector.network]);
 
 		vSectorInfo.setVisibility(View.VISIBLE);
 	}

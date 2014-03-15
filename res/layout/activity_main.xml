@@ -6,7 +6,8 @@
 	<FrameLayout
 		android:id="@+id/fragment_container"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent" />
+		android:layout_height="match_parent"
+		android:fitsSystemWindows="true" />
 
 	<RelativeLayout
 		android:id="@+id/sector_info"
@@ -21,9 +22,19 @@
 		android:background="@color/black_semi">
 
 		<TextView
-			style="@style/SectorInfo.Label"
-			android:id="@+id/sector_label"
+			style="@style/SectorInfo.Coords"
+			android:id="@+id/sector_coords"
 			android:layout_width="wrap_content"
-			android:layout_height="wrap_content" />
+			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
+			android:layout_alignParentRight="true" />
+
+		<TextView
+			style="@style/SectorInfo.Label"
+			android:id="@+id/sector_network"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerVertical="true"
+			android:layout_alignParentLeft="true" />
 	</RelativeLayout>
 </RelativeLayout>
