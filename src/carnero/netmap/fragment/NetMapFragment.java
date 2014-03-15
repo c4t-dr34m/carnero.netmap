@@ -41,6 +41,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	private Polyline mConnectionCurrent;
 	private int[] mFillColors = new int[5];
 	private int[] mStrokeColors = new int[5];
+	private XY mTouched;
 	private int mTouchColor;
 	private boolean mBtsMarkersEnabled = true;
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
@@ -166,6 +167,10 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		if (mCoverageTouch != null) {
 			mCoverageTouch.remove();
 			mCoverageTouch = null;
+
+			resetTouched();
+
+			mTouched = null;
 
 			return true;
 		}
@@ -413,12 +418,74 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		setConnection();
 	}
 
+	protected void resetTouched() {
+		if (mTouched == null) {
+			return;
+		}
+
+		resetCell(mTouched, -1, 0);
+		resetCell(mTouched, +1, 0);
+		resetCell(mTouched, 0, -1);
+		resetCell(mTouched, 0, +1);
+		if ((mTouched.y % 2) == 0) {
+			resetCell(mTouched, +1, -1);
+			resetCell(mTouched, +1, +1);
+		} else {
+			resetCell(mTouched, -1, -1);
+			resetCell(mTouched, -1, +1);
+		}
+	}
+
+	protected void darkenCell(XY xy, int relativeX, int relativeY) {
+		XY sector = new XY(xy.x + relativeX, xy.y + relativeY);
+		Polygon polygon = mCoveragePolygons.get(sector);
+		if (polygon != null) {
+			int getCurrentColor = polygon.getFillColor();
+			if (getCurrentColor == mFillColors[0]) {
+				polygon.setFillColor(mStrokeColors[0]);
+			} else if (getCurrentColor == mFillColors[1]) {
+				polygon.setFillColor(mStrokeColors[1]);
+			} else if (getCurrentColor == mFillColors[2]) {
+				polygon.setFillColor(mStrokeColors[2]);
+			} else if (getCurrentColor == mFillColors[3]) {
+				polygon.setFillColor(mStrokeColors[3]);
+			} else if (getCurrentColor == mFillColors[4]) {
+				polygon.setFillColor(mStrokeColors[4]);
+			} else if (getCurrentColor == mFillColors[5]) {
+				polygon.setFillColor(mStrokeColors[5]);
+			}
+		}
+	}
+
+	protected void resetCell(XY xy, int relativeX, int relativeY) {
+		XY sector = new XY(xy.x + relativeX, xy.y + relativeY);
+		Polygon polygon = mCoveragePolygons.get(sector);
+		if (polygon != null) {
+			int getCurrentColor = polygon.getFillColor();
+			if (getCurrentColor == mStrokeColors[0]) {
+				polygon.setFillColor(mFillColors[0]);
+			} else if (getCurrentColor == mStrokeColors[1]) {
+				polygon.setFillColor(mFillColors[1]);
+			} else if (getCurrentColor == mStrokeColors[2]) {
+				polygon.setFillColor(mFillColors[2]);
+			} else if (getCurrentColor == mStrokeColors[3]) {
+				polygon.setFillColor(mFillColors[3]);
+			} else if (getCurrentColor == mStrokeColors[4]) {
+				polygon.setFillColor(mFillColors[4]);
+			} else if (getCurrentColor == mStrokeColors[5]) {
+				polygon.setFillColor(mFillColors[5]);
+			}
+		}
+	}
+
 	// classes
 
 	public class CoverageClickListener implements GoogleMap.OnMapClickListener {
 
 		@Override
 		public void onMapClick(LatLng latLng) {
+			resetTouched();
+
 			final XY xy = LocationUtil.getSectorXY(latLng);
 
 			Sector sector = SectorCache.get(xy);
@@ -431,7 +498,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 			final PolygonOptions polygonOpts = new PolygonOptions();
 			polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
-			polygonOpts.strokeColor(getResources().getColor(R.color.sector_border));
+			polygonOpts.strokeColor(getResources().getColor(R.color.cell_border));
 			polygonOpts.fillColor(mTouchColor);
 			polygonOpts.addAll(sector.getCorners());
 
@@ -439,6 +506,20 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 				mCoverageTouch.remove();
 			}
 			mCoverageTouch = mMap.addPolygon(polygonOpts);
+
+			darkenCell(xy, -1, 0);
+			darkenCell(xy, +1, 0);
+			darkenCell(xy, 0, -1);
+			darkenCell(xy, 0, +1);
+			if ((xy.y % 2) == 0) {
+				darkenCell(xy, +1, -1);
+				darkenCell(xy, +1, +1);
+			} else {
+				darkenCell(xy, -1, -1);
+				darkenCell(xy, -1, +1);
+			}
+
+			mTouched = xy;
 
 			MainActivity activity = (MainActivity)getActivity();
 			activity.displayInfo(sector);
