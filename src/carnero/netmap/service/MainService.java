@@ -37,7 +37,8 @@ import com.google.android.gms.maps.model.LatLng;
 public class MainService extends Service {
 
     private static boolean sRunning = false;
-    //
+	private static boolean sUseGPS = false;
+	//
     private TelephonyManager mTelephonyManager;
     private ConnectivityManager mConnectivityManager;
     private LocationManager mLocationManager;
@@ -108,12 +109,20 @@ public class MainService extends Service {
 			}
 		}
 
+		boolean toggleGPS = intent.getBooleanExtra(Constants.EXTRA_TOGGLE_GPS, false);
+		if (toggleGPS) {
+			sUseGPS = !sUseGPS;
+		}
+		checkGPS();
+
 		return super.onStartCommand(intent, flags, startId);
 	}
 
 	@Override
 	public void onDestroy() {
         sRunning = false;
+
+		// TODO: disable wake_lock & GPS
 
         cancelPassiveLocation();
 		try {
@@ -139,6 +148,14 @@ public class MainService extends Service {
     public static boolean isRunning() {
         return sRunning;
     }
+
+	protected void checkGPS() {
+		if (sUseGPS) {
+			// TODO: enable wake_lock & GPS
+		} else {
+			// TODO: disable wake_lock & GPS
+		}
+	}
 
     // network
 
@@ -204,6 +221,10 @@ public class MainService extends Service {
         sbLong.append("sectors: " + SectorCache.size());
 
         if (mNotificationManager != null) {
+	        final Intent serviceIntent = new Intent(this, MainService.class);
+	        serviceIntent.putExtra(Constants.EXTRA_TOGGLE_GPS, true);
+	        final PendingIntent toggleGPS = PendingIntent.getService(this, -1, serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
             final Intent notificationIntent = new Intent(this, MainActivity.class);
             final PendingIntent intent = PendingIntent.getActivity(this, -1, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             final Notification.Builder nb = new Notification.Builder(this);
@@ -217,7 +238,7 @@ public class MainService extends Service {
             if (gsmWeb != null) {
                 nb.addAction(android.R.drawable.ic_menu_search, getString(R.string.notification_gsmweb), gsmWeb);
             }
-	        nb.addAction(android.R.drawable.ic_menu_mylocation, getString(R.string.notification_location_fine), null);
+	        nb.addAction(android.R.drawable.ic_menu_mylocation, getString(R.string.notification_location_fine), toggleGPS);
 
             final Notification.BigTextStyle ns = new Notification.BigTextStyle(nb);
             ns.bigText(sbLong.toString());

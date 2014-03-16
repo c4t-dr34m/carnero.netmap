@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="size_quantum">8dp</dimen>
-    <dimen name="size_quantum_half">4dp</dimen>
-    <!-- map -->
-    <dimen name="connection_width">2dp</dimen>
-    <dimen name="sector_margin">1dp</dimen>
+	<dimen name="size_quantum">8dp</dimen>
+	<dimen name="size_quantum_half">4dp</dimen>
+	<!-- map -->
+	<dimen name="connection_width">2dp</dimen>
+	<dimen name="sector_margin">1dp</dimen>
+	<dimen name="touched_margin">3dp</dimen>
 </resources>

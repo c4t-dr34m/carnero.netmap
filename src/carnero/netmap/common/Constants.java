@@ -13,6 +13,7 @@ public class Constants {
 
 	// extras
 	public static final String EXTRA_WAKEUP = "extra_wakeup"; // boolean
+	public static final String EXTRA_TOGGLE_GPS = "extra_toggle_gps"; // boolean
 
 	// geolocation config
 	public static final int GEO_DISTANCE = 30; // 30 m

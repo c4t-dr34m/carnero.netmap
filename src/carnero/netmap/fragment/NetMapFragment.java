@@ -349,6 +349,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		}
 
 		final PolygonOptions polygonOpts = new PolygonOptions();
+		polygonOpts.zIndex(sector.network);
 		polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
 		polygonOpts.strokeColor(stroke);
 		polygonOpts.fillColor(fill);
@@ -497,9 +498,10 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			}
 
 			final PolygonOptions polygonOpts = new PolygonOptions();
-			polygonOpts.strokeWidth(getResources().getDimension(R.dimen.sector_margin));
-			polygonOpts.strokeColor(getResources().getColor(R.color.cell_border));
-			polygonOpts.fillColor(mTouchColor);
+			polygonOpts.strokeWidth(getResources().getDimension(R.dimen.touched_margin));
+			polygonOpts.strokeColor(getResources().getColor(R.color.white));
+			polygonOpts.fillColor(getResources().getColor(R.color.none));
+			polygonOpts.zIndex(1000);
 			polygonOpts.addAll(sector.getCorners());
 
 			if (mCoverageTouch != null) {
