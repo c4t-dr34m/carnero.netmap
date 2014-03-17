@@ -15,6 +15,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.telephony.CellInfo;
 import android.telephony.CellLocation;
 import android.telephony.PhoneStateListener;
@@ -28,6 +29,7 @@ import carnero.netmap.activity.MainActivity;
 import carnero.netmap.common.Constants;
 import carnero.netmap.common.LocationUtil;
 import carnero.netmap.common.Util;
+import carnero.netmap.database.DatabaseHelper;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
@@ -43,23 +45,31 @@ public class MainService extends Service {
     private ConnectivityManager mConnectivityManager;
     private LocationManager mLocationManager;
     private AlarmManager mAlarmManager;
-    private NotificationManager mNotificationManager;
-    private Location mLastLocation;
+	private PowerManager mPowerManager;
+	private PowerManager.WakeLock mWakeLock;
+	private NotificationManager mNotificationManager;
+	private Bts mBts;
+	private float mGPSAccuracy = -1f;
+	private Location mLastLocation;
     private LatLng mLastLatLng;
     private String[] mNetworkTypes;
     private PendingIntent mWakeupPending;
     private PendingIntent mPassivePending;
-    private PendingIntent mOneShotPending;
+	private PendingIntent mActivePending;
+	private PendingIntent mOneShotPending;
     private int[] mIcons = new int[5];
     //
     final private StatusListener mListener = new StatusListener();
     final private LocationListener mLocationListener = new LocationListener();
     final private PassiveLocationReceiver mPassiveReceiver = new PassiveLocationReceiver();
-    final private OneShotLocationReceiver mOneShotReceiver = new OneShotLocationReceiver();
+	final private ActiveLocationReceiver mActiveReceiver = new ActiveLocationReceiver();
+	final private OneShotLocationReceiver mOneShotReceiver = new OneShotLocationReceiver();
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+	    DatabaseHelper.tryExportDB();
 
         mIcons[0] = R.drawable.ic_notification_l1;
         mIcons[1] = R.drawable.ic_notification_l2;
@@ -71,8 +81,9 @@ public class MainService extends Service {
         mConnectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        mNetworkTypes = getResources().getStringArray(R.array.network_types);
-        mTelephonyManager.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
+	    mPowerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
+	    mNetworkTypes = getResources().getStringArray(R.array.network_types);
+	    mTelephonyManager.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
 
 	    NetworkInfo wifi = mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 	    if (wifi != null && wifi.isConnected()) { // do not start when on WiFi
@@ -80,6 +91,7 @@ public class MainService extends Service {
 	    }
 
 	    registerReceiver(mPassiveReceiver, new IntentFilter(Constants.GEO_PASSIVE_INTENT));
+	    registerReceiver(mActiveReceiver, new IntentFilter(Constants.GEO_ACTIVE_INTENT));
 	    registerReceiver(mOneShotReceiver, new IntentFilter(Constants.GEO_ONESHOT_INTENT));
 
         // notification
@@ -91,8 +103,8 @@ public class MainService extends Service {
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText("");
 
-        requestPassiveLocation();
-        startForeground(Constants.NOTIFICATION_ID, builder.build());
+	    checkGPS();
+	    startForeground(Constants.NOTIFICATION_ID, builder.build());
 
         sRunning = true;
     }
@@ -122,11 +134,20 @@ public class MainService extends Service {
 	public void onDestroy() {
         sRunning = false;
 
-		// TODO: disable wake_lock & GPS
+		if (mWakeLock != null) {
+			mWakeLock.release();
+			mWakeLock = null;
+		}
 
         cancelPassiveLocation();
+		cancelActiveLocation();
 		try {
 			unregisterReceiver(mPassiveReceiver);
+		} catch (IllegalArgumentException iae) {
+			// pokemon
+		}
+		try {
+			unregisterReceiver(mActiveReceiver);
 		} catch (IllegalArgumentException iae) {
 			// pokemon
 		}
@@ -151,9 +172,89 @@ public class MainService extends Service {
 
 	protected void checkGPS() {
 		if (sUseGPS) {
-			// TODO: enable wake_lock & GPS
+			mWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getName());
+			mWakeLock.acquire();
+
+			cancelPassiveLocation();
+			requestActiveLocation();
 		} else {
-			// TODO: disable wake_lock & GPS
+			cancelActiveLocation();
+			requestPassiveLocation();
+
+			if (mWakeLock != null) {
+				mWakeLock.release();
+				mWakeLock = null;
+			}
+		}
+
+		mGPSAccuracy = -1f;
+		showNotification();
+	}
+
+	protected void showNotification() {
+		PendingIntent gsmWeb = null;
+		final long time = System.currentTimeMillis();
+		final int type = mTelephonyManager.getNetworkType();
+
+		final StringBuilder sbShort = new StringBuilder();
+		final StringBuilder sbLong = new StringBuilder();
+
+		if (mBts != null) {
+			sbShort.append(mBts.toString());
+
+			sbLong.append(mBts.toString());
+			sbLong.append("\n");
+
+			final String url = Constants.URL_BASE_GSMWEB + Long.toHexString(mBts.cid).toUpperCase();
+			final Intent intent = new Intent(Intent.ACTION_VIEW);
+			intent.setData(Uri.parse(url));
+			gsmWeb = PendingIntent.getActivity(this, -1, intent, 0);
+
+			mBts.getLocation(mLocationListener);
+		}
+
+		sbLong.append("\n");
+		sbLong.append("Sectors collected: " + SectorCache.size());
+		if (sUseGPS) {
+			sbLong.append("; GPS: ");
+			if (mGPSAccuracy >= 0) {
+				sbLong.append(Math.round(mGPSAccuracy));
+				sbLong.append("m");
+			} else {
+				sbLong.append("N/A");
+			}
+		}
+
+		if (mNotificationManager != null) {
+			final Intent serviceIntent = new Intent(this, MainService.class);
+			serviceIntent.putExtra(Constants.EXTRA_TOGGLE_GPS, true);
+			final PendingIntent toggleGPS = PendingIntent.getService(this, -1, serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+			final Intent notificationIntent = new Intent(this, MainActivity.class);
+			final PendingIntent intent = PendingIntent.getActivity(this, -1, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+			final Notification.Builder nb = new Notification.Builder(this);
+
+			nb.setSmallIcon(mIcons[Util.getNetworkLevel(type)]);
+			nb.setOngoing(true);
+			nb.setWhen(time);
+			nb.setContentTitle(mNetworkTypes[type]);
+			nb.setContentText(sbShort.toString());
+			nb.setContentIntent(intent);
+			if (gsmWeb != null) {
+				nb.addAction(android.R.drawable.ic_menu_search, getString(R.string.notification_gsmweb), gsmWeb);
+			}
+			final String labelGPS;
+			if (sUseGPS) {
+				labelGPS = getString(R.string.notification_location_coarse);
+			} else {
+				labelGPS = getString(R.string.notification_location_fine);
+			}
+			nb.addAction(android.R.drawable.ic_menu_mylocation, labelGPS, toggleGPS);
+
+			final Notification.BigTextStyle ns = new Notification.BigTextStyle(nb);
+			ns.bigText(sbLong.toString());
+
+			mNotificationManager.notify(Constants.NOTIFICATION_ID, ns.build());
 		}
 	}
 
@@ -175,11 +276,6 @@ public class MainService extends Service {
             return;
         }
 
-        final StringBuilder sbShort = new StringBuilder();
-        final StringBuilder sbLong = new StringBuilder();
-
-        PendingIntent gsmWeb = null;
-        final long time = System.currentTimeMillis();
         final String operator = mTelephonyManager.getNetworkOperator();
         // final String opName = mTelephonyManager.getNetworkOperatorName();
         // final boolean roaming = mTelephonyManager.isNetworkRoaming();
@@ -198,53 +294,12 @@ public class MainService extends Service {
 
         if (cell instanceof GsmCellLocation) {
             final GsmCellLocation gsmCell = (GsmCellLocation) cell;
-            final Bts bts = BtsCache.update(operator, gsmCell.getLac(), gsmCell.getCid(), type);
-
-            if (bts != null) {
-                sbShort.append(bts.toString());
-
-                sbLong.append(bts.toString());
-                sbLong.append("\n");
-
-                final String url = Constants.URL_BASE_GSMWEB + Long.toHexString(bts.cid).toUpperCase();
-                final Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(url));
-                gsmWeb = PendingIntent.getActivity(this, -1, intent, 0);
-
-                bts.getLocation(mLocationListener);
-            }
+	        mBts = BtsCache.update(operator, gsmCell.getLac(), gsmCell.getCid(), type);
         } else if (cell instanceof CdmaCellLocation) {
             Log.w(Constants.TAG, "CDMA location not implemented");
         }
 
-        sbLong.append("\n");
-        sbLong.append("sectors: " + SectorCache.size());
-
-        if (mNotificationManager != null) {
-	        final Intent serviceIntent = new Intent(this, MainService.class);
-	        serviceIntent.putExtra(Constants.EXTRA_TOGGLE_GPS, true);
-	        final PendingIntent toggleGPS = PendingIntent.getService(this, -1, serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            final Intent notificationIntent = new Intent(this, MainActivity.class);
-            final PendingIntent intent = PendingIntent.getActivity(this, -1, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            final Notification.Builder nb = new Notification.Builder(this);
-
-            nb.setSmallIcon(mIcons[Util.getNetworkLevel(type)]);
-            nb.setOngoing(true);
-            nb.setWhen(time);
-            nb.setContentTitle(mNetworkTypes[type]);
-            nb.setContentText(sbShort.toString());
-            nb.setContentIntent(intent);
-            if (gsmWeb != null) {
-                nb.addAction(android.R.drawable.ic_menu_search, getString(R.string.notification_gsmweb), gsmWeb);
-            }
-	        nb.addAction(android.R.drawable.ic_menu_mylocation, getString(R.string.notification_location_fine), toggleGPS);
-
-            final Notification.BigTextStyle ns = new Notification.BigTextStyle(nb);
-            ns.bigText(sbLong.toString());
-
-            mNotificationManager.notify(Constants.NOTIFICATION_ID, ns.build());
-        }
+	    showNotification();
     }
 
     // location
@@ -268,17 +323,41 @@ public class MainService extends Service {
         mLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mPassivePending);
     }
 
-    public void cancelPassiveLocation() {
+	public void requestActiveLocation() {
+		final Intent intent = new Intent(Constants.GEO_ACTIVE_INTENT);
+		mActivePending = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mActivePending);
+	}
+
+	public void cancelPassiveLocation() {
 	    if (mPassivePending != null) {
 		    mLocationManager.removeUpdates(mPassivePending);
 	    }
     }
 
-    public void onLocationChanged(Location location) {
-        if (location == null) {
+	public void cancelActiveLocation() {
+		if (mActivePending != null) {
+			mLocationManager.removeUpdates(mActivePending);
+		}
+	}
+
+	public void onLocationChanged(Location location) {
+		if (location == null) {
             return;
         }
-        if (mLastLocation != null && mLastLocation.distanceTo(location) < 75) {
+		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
+			boolean refreshNotification = false;
+			if (location.getAccuracy() != mGPSAccuracy) {
+				refreshNotification = true;
+			}
+
+			mGPSAccuracy = location.getAccuracy();
+
+			if (refreshNotification) {
+				showNotification();
+			}
+		}
+		if (mLastLocation != null && mLastLocation.distanceTo(location) < 75) {
             return;
         }
 
@@ -342,8 +421,21 @@ public class MainService extends Service {
         }
     }
 
-    /**
-     * Receives new location broadcast and unregisters itself
+	private class ActiveLocationReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Log.w(Constants.TAG, "New location received (active)");
+
+			final Bundle extra = intent.getExtras();
+			final Location location = (Location)extra.get(LocationManager.KEY_LOCATION_CHANGED);
+
+			onLocationChanged(location);
+		}
+	}
+
+	/**
+	 * Receives new location broadcast and unregisters itself
      */
     private class OneShotLocationReceiver extends BroadcastReceiver {
 

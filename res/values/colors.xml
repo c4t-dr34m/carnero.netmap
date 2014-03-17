@@ -18,9 +18,9 @@
 	<color name="cell_l3">#66575700</color>
 	<color name="cell_l4">#662B8300</color>
 	<color name="cell_l5">#6601AD00</color>
-	<color name="stroke_l1">#CCAE0100</color>
-	<color name="stroke_l2">#CC832B00</color>
-	<color name="stroke_l3">#CC575700</color>
-	<color name="stroke_l4">#CC2B8300</color>
-	<color name="stroke_l5">#CC01AD00</color>
+	<color name="stroke_l1">#FFAE0100</color>
+	<color name="stroke_l2">#FF832B00</color>
+	<color name="stroke_l3">#FF575700</color>
+	<color name="stroke_l4">#FF2B8300</color>
+	<color name="stroke_l5">#FF01AD00</color>
 </resources>

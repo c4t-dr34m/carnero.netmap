@@ -1,8 +1,15 @@
 package carnero.netmap.database;
 
+import java.io.*;
+import java.nio.channels.FileChannel;
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Environment;
+import android.util.Log;
+
+import carnero.netmap.common.Constants;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -79,4 +86,87 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             SQLiteDatabase.releaseMemory();
         }
     }
+
+	public static File getExportFile() {
+		File sd = Environment.getExternalStorageDirectory();
+		String path = DatabaseHelper.DB_NAME + ".sqlite";
+
+		if (!sd.canWrite()) {
+			return null;
+		}
+
+		return new File(sd, path);
+	}
+
+	public void importDB() {
+		File data = Environment.getDataDirectory();
+
+		String pathApp = "/data/carnero.netmap/databases/" + DatabaseHelper.DB_NAME;
+		File databaseApp = new File(data, pathApp);
+		File databaseExport = getExportFile();
+
+		if (databaseExport == null) {
+			Log.e(Constants.TAG, "Unable to export database");
+			return;
+		}
+
+		try {
+			if (database != null) {
+				database.close();
+				database = null;
+			}
+			if (databaseApp.exists()) {
+				databaseApp.delete();
+			}
+
+			FileChannel application = new FileInputStream(databaseApp).getChannel();
+			FileChannel exported = new FileOutputStream(databaseExport).getChannel();
+
+			application.transferFrom(exported, 0, exported.size());
+
+			application.close();
+			exported.close();
+
+			init();
+		} catch (FileNotFoundException fnfe) {
+			Log.e(Constants.TAG, "Failed to export databse (FNFE)");
+		} catch (IOException ioe) {
+			Log.e(Constants.TAG, "Failed to export databse (IOE)");
+		}
+	}
+
+	public static void tryExportDB() {
+		File exported = getExportFile();
+
+		if (!exported.exists() || exported.lastModified() < (System.currentTimeMillis() - (24 * 60 * 60 * 1000))) { // 24 hrs
+			exportDB();
+		}
+	}
+
+	public static void exportDB() {
+		File data = Environment.getDataDirectory();
+
+		String pathApp = "/data/carnero.netmap/databases/" + DatabaseHelper.DB_NAME;
+		File databaseApp = new File(data, pathApp);
+		File databaseExport = getExportFile();
+
+		if (databaseExport == null) {
+			Log.e(Constants.TAG, "Unable to export database");
+			return;
+		}
+
+		try {
+			FileChannel application = new FileInputStream(databaseApp).getChannel();
+			FileChannel exported = new FileOutputStream(databaseExport).getChannel();
+
+			exported.transferFrom(application, 0, application.size());
+
+			application.close();
+			exported.close();
+		} catch (FileNotFoundException fnfe) {
+			Log.e(Constants.TAG, "Failed to export databse (FNFE)");
+		} catch (IOException ioe) {
+			Log.e(Constants.TAG, "Failed to export databse (IOE)");
+		}
+	}
 }
