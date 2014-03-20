@@ -8,32 +8,50 @@
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
 
-	<RelativeLayout
+	<View
+		android:id="@+id/actionbar_background"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:background="@color/black_semi" />
+
+	<LinearLayout
 		android:id="@+id/sector_info"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_alignParentBottom="true"
-		android:paddingTop="8dp"
-		android:paddingRight="16dp"
-		android:paddingBottom="8dp"
-		android:paddingLeft="16dp"
 		android:visibility="gone"
-		android:background="@color/black_semi">
+		android:orientation="vertical">
 
-		<TextView
-			style="@style/SectorInfo.Coords"
-			android:id="@+id/sector_coords"
-			android:layout_width="wrap_content"
+		<RelativeLayout
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:layout_alignParentTop="true"
-			android:layout_alignParentRight="true" />
+			android:paddingTop="8dp"
+			android:paddingRight="16dp"
+			android:paddingBottom="0dp"
+			android:paddingLeft="16dp"
+			android:background="@color/black_semi">
 
-		<TextView
-			style="@style/SectorInfo.Label"
-			android:id="@+id/sector_network"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_centerVertical="true"
-			android:layout_alignParentLeft="true" />
-	</RelativeLayout>
+			<TextView
+				style="@style/SectorInfo.Coords"
+				android:id="@+id/sector_coords"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_alignParentTop="true"
+				android:layout_alignParentRight="true" />
+
+			<TextView
+				style="@style/SectorInfo.Label"
+				android:id="@+id/sector_network"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerVertical="true"
+				android:layout_alignParentLeft="true" />
+		</RelativeLayout>
+
+		<View
+			android:id="@+id/navigation_background"
+			android:layout_width="match_parent"
+			android:layout_height="0dp"
+			android:background="@color/black_semi" />
+	</LinearLayout>
 </RelativeLayout>

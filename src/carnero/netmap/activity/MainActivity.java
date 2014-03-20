@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import carnero.netmap.R;
+import carnero.netmap.common.Util;
 import carnero.netmap.fragment.NetMapFragment;
 import carnero.netmap.iface.IBackHandler;
 import carnero.netmap.model.Sector;
@@ -52,6 +53,16 @@ public class MainActivity extends Activity {
 		if (!MainService.isRunning()) {
 			final Intent serviceIntent = new Intent(this, MainService.class);
 			startService(serviceIntent);
+		}
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			findViewById(R.id.actionbar_background).getLayoutParams().height = Util.getTopPanelsHeight(this);
+			findViewById(R.id.navigation_background).getLayoutParams().height = Util.getBottomPanelsHeight(this);
 		}
 	}
 

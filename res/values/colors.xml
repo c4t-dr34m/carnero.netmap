@@ -2,9 +2,9 @@
 <resources>
 	<!-- basic -->
 	<color name="white">@android:color/white</color>
-	<color name="white_semi">#99FFFFFF</color>
+	<color name="white_semi">#77FFFFFF</color>
 	<color name="black">@android:color/black</color>
-	<color name="black_semi">#99000000</color>
+	<color name="black_semi">#77000000</color>
 	<color name="none">@android:color/transparent</color>
 	<!-- transparent -->
 	<color name="black_transparent">#88000000</color>
@@ -18,9 +18,9 @@
 	<color name="cell_l3">#66575700</color>
 	<color name="cell_l4">#662B8300</color>
 	<color name="cell_l5">#6601AD00</color>
-	<color name="stroke_l1">#FFAE0100</color>
-	<color name="stroke_l2">#FF832B00</color>
-	<color name="stroke_l3">#FF575700</color>
-	<color name="stroke_l4">#FF2B8300</color>
-	<color name="stroke_l5">#FF01AD00</color>
+	<color name="stroke_l1">#DDAE0100</color>
+	<color name="stroke_l2">#DD832B00</color>
+	<color name="stroke_l3">#DD575700</color>
+	<color name="stroke_l4">#DD2B8300</color>
+	<color name="stroke_l5">#DD01AD00</color>
 </resources>

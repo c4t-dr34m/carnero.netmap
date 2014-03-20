@@ -3,7 +3,46 @@ package carnero.netmap.common;
 import java.io.BufferedReader;
 import java.io.IOException;
 
+import android.content.Context;
+import android.util.TypedValue;
+
 public class Util {
+
+	/**
+	 * Get sum of height of ActionBar and status (system) bar
+	 *
+	 * @param context
+	 * @return
+	 */
+	public static int getTopPanelsHeight(Context context) {
+		int panelsHeight = 0;
+		int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+		if (resourceId > 0) {
+			panelsHeight += context.getResources().getDimensionPixelSize(resourceId);
+		}
+		TypedValue tv = new TypedValue();
+		if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+			panelsHeight += TypedValue.complexToDimensionPixelSize(tv.data, context.getResources().getDisplayMetrics());
+		}
+
+		return panelsHeight;
+	}
+
+	/**
+	 * Get navigation panel height
+	 *
+	 * @param context
+	 * @return
+	 */
+	public static int getBottomPanelsHeight(Context context) {
+		int panelsHeight = 0;
+		int resourceId = context.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+		if (resourceId > 0) {
+			panelsHeight += context.getResources().getDimensionPixelSize(resourceId);
+		}
+
+		return panelsHeight;
+	}
 
     /**
      * Get network level according to network

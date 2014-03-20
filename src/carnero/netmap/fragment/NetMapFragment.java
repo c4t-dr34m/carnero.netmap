@@ -453,8 +453,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 				polygon.setFillColor(mStrokeColors[3]);
 			} else if (getCurrentColor == mFillColors[4]) {
 				polygon.setFillColor(mStrokeColors[4]);
-			} else if (getCurrentColor == mFillColors[5]) {
-				polygon.setFillColor(mStrokeColors[5]);
 			}
 		}
 	}
@@ -474,8 +472,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 				polygon.setFillColor(mFillColors[3]);
 			} else if (getCurrentColor == mStrokeColors[4]) {
 				polygon.setFillColor(mFillColors[4]);
-			} else if (getCurrentColor == mStrokeColors[5]) {
-				polygon.setFillColor(mFillColors[5]);
 			}
 		}
 	}

@@ -7,7 +7,7 @@
 	</style>
 
 	<style name="ActionBar" parent="android:Widget.ActionBar">
-		<item name="android:background">@color/black</item>
+		<item name="android:background">@color/none</item>
 	</style>
 
 	<style name="SectorInfo" />
@@ -16,11 +16,19 @@
 		<item name="android:textSize">14dp</item>
 		<item name="android:textColor">@color/white_semi</item>
 		<item name="android:fontFamily">sans-serif-thin</item>
+		<item name="android:shadowDx">1</item>
+		<item name="android:shadowDy">2</item>
+		<item name="android:shadowRadius">3</item>
+		<item name="android:shadowColor">@color/black_semi</item>
 	</style>
 
 	<style name="SectorInfo.Label">
 		<item name="android:textSize">32dp</item>
 		<item name="android:textColor">@color/white</item>
 		<item name="android:fontFamily">sans-serif-thin</item>
+		<item name="android:shadowDx">1</item>
+		<item name="android:shadowDy">2</item>
+		<item name="android:shadowRadius">5</item>
+		<item name="android:shadowColor">@color/black</item>
 	</style>
 </resources>
