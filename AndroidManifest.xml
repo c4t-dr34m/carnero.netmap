@@ -2,10 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="carnero.netmap"
 	android:installLocation="internalOnly"
-	android:versionCode="10"
-	android:versionName="0.07.3">
+	android:versionCode="12"
+	android:versionName="0.08.0">
 
-<uses-sdk
+	<uses-sdk
 		android:minSdkVersion="16"
 		android:targetSdkVersion="19" />
 	<uses-feature
@@ -36,6 +36,9 @@
 		<meta-data
 			android:name="com.google.android.maps.v2.API_KEY"
 			android:value="AIzaSyBx7ll7LHbYuP3XW62xbxFkNRlO4fKhV8A" />
+		<meta-data
+			android:name="com.google.android.gms.version"
+			android:value="@integer/google_play_services_version" />
 
 		<activity
 			android:name="carnero.netmap.activity.MainActivity"

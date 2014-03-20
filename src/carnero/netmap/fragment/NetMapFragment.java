@@ -42,7 +42,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	private int[] mFillColors = new int[5];
 	private int[] mStrokeColors = new int[5];
 	private XY mTouched;
-	private int mTouchColor;
 	private boolean mBtsMarkersEnabled = true;
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
 	private HashMap<XY, Polygon> mCoveragePolygons = new HashMap<XY, Polygon>();
@@ -64,7 +63,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 		mTelephony = (TelephonyManager)getActivity().getSystemService(Context.TELEPHONY_SERVICE);
 
-		mTouchColor = getResources().getColor(R.color.cell_touch);
 		mFillColors[0] = getResources().getColor(R.color.cell_l1);
 		mFillColors[1] = getResources().getColor(R.color.cell_l2);
 		mFillColors[2] = getResources().getColor(R.color.cell_l3);
@@ -113,8 +111,10 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		BtsCache.removeListener(this);
 		SectorCache.removeListener(this);
 
-		mMyMarker.remove();
-		mMyMarker = null;
+		if (mMyMarker != null) {
+			mMyMarker.remove();
+			mMyMarker = null;
+		}
 
 		mMap.clear();
 		mMap = null;
@@ -194,11 +194,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 				return; // map is not yet available
 			}
 
-			UiSettings settings = mMap.getUiSettings();
-			settings.setCompassEnabled(true);
-			settings.setZoomControlsEnabled(false);
-			settings.setMyLocationButtonEnabled(false);
-
+			mMap.setPadding(0, 0, 0, 0);
 			mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 			mMap.setMyLocationEnabled(false);
 			mMap.setOnCameraChangeListener(new MapMoveListener());
@@ -207,6 +203,11 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			if (mMap.getMaxZoomLevel() < mZoomDefault) {
 				mZoomDefault = mMap.getMaxZoomLevel();
 			}
+
+			UiSettings settings = mMap.getUiSettings();
+			settings.setCompassEnabled(true);
+			settings.setZoomControlsEnabled(false);
+			settings.setMyLocationButtonEnabled(false);
 		}
 
 		final List<Sector> sectors = SectorCache.getAll();
