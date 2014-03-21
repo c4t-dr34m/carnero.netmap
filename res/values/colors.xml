@@ -8,14 +8,10 @@
 	<color name="none">@android:color/transparent</color>
 	<!-- transparent -->
 	<color name="black_transparent">#88000000</color>
-	<!-- navigation: sector information -->
-	<color name="nav_sectors_spacer">#220057AE</color>
-	<color name="nav_sectors_button">#660057AE</color>
-	<color name="nav_sectors_line">#AA0057AE</color>
-	<!-- navigation: markers button -->
-	<color name="nav_markers_spacer">#22AE0100</color>
-	<color name="nav_markers_button">#66AE0100</color>
-	<color name="nav_markers_line">#AAAE0100</color>
+	<!-- navigation -->
+	<color name="nav_spacer">#22000000</color>
+	<color name="nav_button">#66000000</color>
+	<color name="nav_line">#AA000000</color>
 	<!-- connection -->
 	<color name="connection_current">#AA000000</color>
 	<!-- coverage -->

@@ -5,6 +5,7 @@ import java.util.List;
 import android.app.Application;
 import android.content.Context;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 
 import carnero.netmap.common.Geo;
 import carnero.netmap.database.BtsDb;
@@ -20,7 +21,8 @@ public class App extends Application {
 
 	private static App sContext;
 	private static Geo sGeo;
-    private static DatabaseHelper sDbHelper;
+	private static String sOperatorID;
+	private static DatabaseHelper sDbHelper;
     public boolean initialized = false;
 
     @Override
@@ -59,14 +61,20 @@ public class App extends Application {
         super.onTerminate();
     }
 
+	public static String getOperatorID() {
+		if (TextUtils.isEmpty(sOperatorID)) {
+			final TelephonyManager manager = (TelephonyManager)sContext.getSystemService(Context.TELEPHONY_SERVICE);
+			sOperatorID = manager.getSimOperator();
+		}
+
+		return sOperatorID;
+	}
+
     public static Geo getGeolocation() {
         return sGeo;
     }
 
 	public static OperatorDatabase getDatabase() {
-		final TelephonyManager manager = (TelephonyManager)sContext.getSystemService(Context.TELEPHONY_SERVICE);
-		final String operatorID = manager.getSimOperator();
-
-		return sDbHelper.getDatabase(operatorID);
+		return sDbHelper.getDatabase(getOperatorID());
 	}
 }

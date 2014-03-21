@@ -334,6 +334,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		// connection
 		if (mConnectionCurrent == null) {
 			final PolylineOptions polylineOpts = new PolylineOptions();
+			polylineOpts.zIndex(1010);
 			polylineOpts.width(getResources().getDimension(R.dimen.connection_width));
 			polylineOpts.color(getResources().getColor(R.color.connection_current));
 			polylineOpts.add(mLastBts.location);

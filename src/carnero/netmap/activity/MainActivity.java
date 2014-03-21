@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import carnero.netmap.App;
 import carnero.netmap.R;
 import carnero.netmap.common.Preferences;
 import carnero.netmap.common.Util;
@@ -24,6 +25,8 @@ public class MainActivity extends Activity {
 
 	protected Fragment mFragment;
 	//
+	protected View vBtnOperatorContainer;
+	protected TextView vBtnOperator;
 	protected View vBtnSectorsContainer;
 	protected TextView vBtnSectors;
 	protected ImageView vBtnMarkers;
@@ -40,9 +43,13 @@ public class MainActivity extends Activity {
 			window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 		}
 
+		vBtnOperatorContainer = findViewById(R.id.btn_operator_container);
+		vBtnOperator = (TextView)findViewById(R.id.btn_operator);
 		vBtnSectorsContainer = findViewById(R.id.btn_sectors_container);
 		vBtnSectors = (TextView)findViewById(R.id.btn_sectors);
 		vBtnMarkers = (ImageButton)findViewById(R.id.btn_markers);
+
+		vBtnOperator.setText(App.getOperatorID());
 
 		checkMarkers();
 		vBtnMarkers.setOnClickListener(new View.OnClickListener() {

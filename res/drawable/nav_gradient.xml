@@ -2,7 +2,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 	<item>
 		<shape>
-			<gradient android:startColor="@color/nav_markers_spacer" android:endColor="@color/nav_markers_button" android:angle="270" />
+			<gradient android:startColor="@color/nav_spacer" android:endColor="@color/nav_button" android:angle="270" />
 		</shape>
 	</item>
 </selector>
