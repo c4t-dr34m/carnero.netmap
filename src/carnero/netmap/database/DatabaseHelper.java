@@ -2,8 +2,10 @@ package carnero.netmap.database;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
@@ -13,10 +15,10 @@ import carnero.netmap.common.Constants;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    public SQLiteDatabase database;
-    // consts
+	public OperatorDatabase od;
+	// consts
     public static final String DB_NAME = "carnero.netmap";
-    public static final int DB_VERSION = 2;
+	public static final int DB_VERSION = 3;
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -24,64 +26,106 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(DatabaseStructure.SQL.createBts());
-        db.execSQL(DatabaseStructure.SQL.createSector());
-
-        String[] indexes;
-
-        indexes = DatabaseStructure.SQL.createBtsIndexes();
-        for (String index : indexes) {
-            db.execSQL(index);
-        }
-
-        indexes = DatabaseStructure.SQL.createSectorIndexes();
-        for (String index : indexes) {
-            db.execSQL(index);
-        }
+	    // empty
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int versionOld, int versionNew) {
-        try {
-            db.beginTransaction();
-
-            db.execSQL("drop table if exists " + DatabaseStructure.TABLE.BTS);
-            db.execSQL("drop table if exists " + DatabaseStructure.TABLE.SECTOR);
-
-            onCreate(db);
-
-            db.setTransactionSuccessful();
-        } finally {
-            db.endTransaction();
-        }
+	    // empty
     }
 
-    public SQLiteDatabase getDatabase() {
-        if (database == null) {
-            init();
-        }
+	protected void init(final String operatorID) {
+		if (od == null) {
+			od = new OperatorDatabase();
+			od.operatorID = operatorID;
+			od.database = getWritableDatabase();
 
-        return database;
-    }
+			if (od.database.inTransaction()) {
+				od.database.endTransaction();
+			}
 
-    public void init() {
-        if (database == null) {
-            database = getWritableDatabase();
+			// check tables
+			ArrayList<String> tables = new ArrayList<>();
+			Cursor cursor = od.database.rawQuery("select name from sqlite_master where type='table'", null);
+			if (cursor != null) {
+				int index = cursor.getColumnIndex("name");
 
-            if (database.inTransaction()) {
-                database.endTransaction();
-            }
-        }
-    }
+				cursor.moveToFirst();
+				do {
+					String table = cursor.getString(index);
+					tables.add(table);
+
+					Log.d(Constants.TAG, "table: " + table);
+				} while (cursor.moveToNext());
+			}
+
+			String tableBTS = getBTSTableName(operatorID);
+			String tableSectors = getSectorsTableName(operatorID);
+
+			if (tables.contains(DatabaseStructure.TABLE.BTS) || tables.contains(DatabaseStructure.TABLE.SECTOR)) {
+				// move old tables
+				od.database.beginTransaction();
+				try {
+					if (tables.contains(DatabaseStructure.TABLE.BTS)) {
+						od.database.execSQL("alter table '" + DatabaseStructure.TABLE.BTS + "' rename to '" + tableBTS + "'");
+					}
+					if (tables.contains(DatabaseStructure.TABLE.SECTOR)) {
+						od.database.execSQL("alter table '" + DatabaseStructure.TABLE.SECTOR + "' rename to '" + tableSectors + "'");
+					}
+
+					od.database.setTransactionSuccessful();
+					Log.i(Constants.TAG, "Old tables moved...");
+				} catch (Exception e) {
+					Log.e(Constants.TAG, "Failed to move old tables! " + e.toString());
+				} finally {
+					od.database.endTransaction();
+				}
+			} else if (!tables.contains(tableBTS) || !tables.contains(tableSectors)) {
+				// create new operator-related tables
+				od.database.beginTransaction();
+				try {
+					if (!tables.contains(tableBTS)) {
+						od.database.execSQL(DatabaseStructure.SQL.createBts(tableBTS));
+						od.database.execSQL(DatabaseStructure.SQL.createBtsIndex(tableBTS));
+					}
+					if (!tables.contains(tableSectors)) {
+						od.database.execSQL(DatabaseStructure.SQL.createSector(tableSectors));
+						od.database.execSQL(DatabaseStructure.SQL.createSectorIndex(tableSectors));
+					}
+					Log.i(Constants.TAG, "Table for " + operatorID + " created...");
+				} catch (Exception e) {
+					Log.e(Constants.TAG, "Failed to create new tables! " + e.toString());
+				} finally {
+					od.database.endTransaction();
+				}
+			}
+		}
+	}
+
+	public static String getBTSTableName(final String operatorID) {
+		return DatabaseStructure.TABLE.BTS_PREFIX + operatorID;
+	}
+
+	public static String getSectorsTableName(final String operatorID) {
+		return DatabaseStructure.TABLE.SECTOR_PREFIX + operatorID;
+	}
+
+	public OperatorDatabase getDatabase(final String operatorID) {
+		if (od == null) {
+			init(operatorID);
+		}
+
+		return od;
+	}
 
     public void release() {
-        if (database != null) {
-            if (database.inTransaction()) {
-                database.endTransaction();
-            }
+	    if (od != null) {
+		    if (od.database.inTransaction()) {
+			    od.database.endTransaction();
+		    }
 
-            database.close();
-            database = null;
+		    od.database.close();
+		    od = null;
 
             SQLiteDatabase.releaseMemory();
         }
@@ -111,9 +155,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		}
 
 		try {
-			if (database != null) {
-				database.close();
-				database = null;
+			if (od != null) {
+				od.database.close();
+				od = null;
 			}
 			if (databaseApp.exists()) {
 				databaseApp.delete();
@@ -126,8 +170,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 			application.close();
 			exported.close();
-
-			init();
 		} catch (FileNotFoundException fnfe) {
 			Log.e(Constants.TAG, "Failed to export databse (FNFE)");
 		} catch (IOException ioe) {

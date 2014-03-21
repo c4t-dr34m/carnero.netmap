@@ -56,6 +56,7 @@
 				android:layout_height="wrap_content"
 				android:layout_centerVertical="true"
 				android:layout_alignParentLeft="true"
+				android:paddingBottom="0dp"
 				android:background="@color/nav_sectors_button" />
 
 			<View

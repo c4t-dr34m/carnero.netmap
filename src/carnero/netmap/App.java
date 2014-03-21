@@ -1,13 +1,15 @@
 package carnero.netmap;
 
-import android.app.Application;
-import android.database.sqlite.SQLiteDatabase;
-
 import java.util.List;
+
+import android.app.Application;
+import android.content.Context;
+import android.telephony.TelephonyManager;
 
 import carnero.netmap.common.Geo;
 import carnero.netmap.database.BtsDb;
 import carnero.netmap.database.DatabaseHelper;
+import carnero.netmap.database.OperatorDatabase;
 import carnero.netmap.database.SectorDb;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
@@ -16,7 +18,8 @@ import carnero.netmap.model.SectorCache;
 
 public class App extends Application {
 
-    private static Geo sGeo;
+	private static App sContext;
+	private static Geo sGeo;
     private static DatabaseHelper sDbHelper;
     public boolean initialized = false;
 
@@ -24,7 +27,8 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        sGeo = new Geo(this);
+	    sContext = this;
+	    sGeo = new Geo(this);
         sDbHelper = new DatabaseHelper(this);
 
         final List<Bts> btses = BtsDb.loadAll(getDatabase());
@@ -50,6 +54,7 @@ public class App extends Application {
             sDbHelper.release();
             sDbHelper = null;
         }
+	    sContext = null;
 
         super.onTerminate();
     }
@@ -58,7 +63,10 @@ public class App extends Application {
         return sGeo;
     }
 
-    public static SQLiteDatabase getDatabase() {
-        return sDbHelper.getDatabase();
-    }
+	public static OperatorDatabase getDatabase() {
+		final TelephonyManager manager = (TelephonyManager)sContext.getSystemService(Context.TELEPHONY_SERVICE);
+		final String operatorID = manager.getSimOperator();
+
+		return sDbHelper.getDatabase(operatorID);
+	}
 }
