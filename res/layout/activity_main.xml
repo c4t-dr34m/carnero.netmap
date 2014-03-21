@@ -35,46 +35,32 @@
 				style="@style/NavigationLine"
 				android:background="@color/nav_markers_line" />
 		</LinearLayout>
-	</RelativeLayout>
 
-	<LinearLayout
-		android:id="@+id/sector_info"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_alignParentBottom="true"
-		android:visibility="gone"
-		android:orientation="vertical">
+		<LinearLayout
+			android:id="@+id/btn_sectors_container"
+			android:visibility="gone"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_toLeftOf="@id/btn_markers_container"
+			android:orientation="vertical">
 
-		<RelativeLayout
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:paddingTop="8dp"
-			android:paddingRight="16dp"
-			android:paddingBottom="0dp"
-			android:paddingLeft="16dp"
-			android:background="@color/black_semi">
+			<View
+				style="@style/NavigationSpacer"
+				android:background="@drawable/nav_sectors_gradient" />
+
 
 			<TextView
-				style="@style/SectorInfo.Coords"
-				android:id="@+id/sector_coords"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_alignParentTop="true"
-				android:layout_alignParentRight="true" />
-
-			<TextView
-				style="@style/SectorInfo.Label"
-				android:id="@+id/sector_network"
+				style="@style/NavigationButton"
+				android:id="@+id/btn_sectors"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_centerVertical="true"
-				android:layout_alignParentLeft="true" />
-		</RelativeLayout>
+				android:layout_alignParentLeft="true"
+				android:background="@color/nav_sectors_button" />
 
-		<View
-			android:id="@+id/navigation_background"
-			android:layout_width="match_parent"
-			android:layout_height="0dp"
-			android:background="@color/black_semi" />
-	</LinearLayout>
+			<View
+				style="@style/NavigationLine"
+				android:background="@color/nav_sectors_line" />
+		</LinearLayout>
+	</RelativeLayout>
 </RelativeLayout>

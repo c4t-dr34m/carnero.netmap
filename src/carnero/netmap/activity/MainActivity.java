@@ -24,10 +24,9 @@ public class MainActivity extends Activity {
 
 	protected Fragment mFragment;
 	//
+	protected View vBtnSectorsContainer;
+	protected TextView vBtnSectors;
 	protected ImageView vBtnMarkers;
-	protected View vSectorInfo;
-	protected TextView vSectorCoords;
-	protected TextView vSectorNetwork;
 
 	@Override
 	public void onCreate(Bundle state) {
@@ -41,10 +40,9 @@ public class MainActivity extends Activity {
 			window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 		}
 
+		vBtnSectorsContainer = findViewById(R.id.btn_sectors_container);
+		vBtnSectors = (TextView)findViewById(R.id.btn_sectors);
 		vBtnMarkers = (ImageButton)findViewById(R.id.btn_markers);
-		vSectorInfo = findViewById(R.id.sector_info);
-		vSectorCoords = (TextView)findViewById(R.id.sector_coords);
-		vSectorNetwork = (TextView)findViewById(R.id.sector_network);
 
 		checkMarkers();
 		vBtnMarkers.setOnClickListener(new View.OnClickListener() {
@@ -76,7 +74,6 @@ public class MainActivity extends Activity {
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 			findViewById(R.id.actionbar_background).getLayoutParams().height = Util.getTopPanelsHeight(this);
-			findViewById(R.id.navigation_background).getLayoutParams().height = Util.getBottomPanelsHeight(this);
 		}
 	}
 
@@ -105,13 +102,12 @@ public class MainActivity extends Activity {
 	}
 
 	public void displayInfo(Sector sector) {
-		vSectorCoords.setText(sector.index.x + "," + sector.index.y);
-		vSectorNetwork.setText(getResources().getTextArray(R.array.network_types)[sector.network]);
+		vBtnSectors.setText(getResources().getTextArray(R.array.network_types)[sector.network]);
 
-		vSectorInfo.setVisibility(View.VISIBLE);
+		vBtnSectorsContainer.setVisibility(View.VISIBLE);
 	}
 
 	public void hideInfo() {
-		vSectorInfo.setVisibility(View.GONE);
+		vBtnSectorsContainer.setVisibility(View.GONE);
 	}
 }
