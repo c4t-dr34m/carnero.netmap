@@ -8,9 +8,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import carnero.netmap.R;
+import carnero.netmap.common.Preferences;
 import carnero.netmap.common.Util;
 import carnero.netmap.fragment.NetMapFragment;
 import carnero.netmap.iface.IBackHandler;
@@ -21,6 +24,7 @@ public class MainActivity extends Activity {
 
 	protected Fragment mFragment;
 	//
+	protected ImageView vBtnMarkers;
 	protected View vSectorInfo;
 	protected TextView vSectorCoords;
 	protected TextView vSectorNetwork;
@@ -37,9 +41,19 @@ public class MainActivity extends Activity {
 			window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 		}
 
+		vBtnMarkers = (ImageButton)findViewById(R.id.btn_markers);
 		vSectorInfo = findViewById(R.id.sector_info);
 		vSectorCoords = (TextView)findViewById(R.id.sector_coords);
 		vSectorNetwork = (TextView)findViewById(R.id.sector_network);
+
+		checkMarkers();
+		vBtnMarkers.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Preferences.switchMarkers(MainActivity.this);
+				checkMarkers();
+			}
+		});
 
 		if (state == null) {
 			mFragment = new NetMapFragment();
@@ -75,6 +89,18 @@ public class MainActivity extends Activity {
 
 		if (!status) {
 			super.onBackPressed();
+		}
+	}
+
+	protected void checkMarkers() {
+		if (Preferences.isSetMarkers(this)) {
+			vBtnMarkers.setImageResource(R.drawable.ic_ab_markers_off);
+		} else {
+			vBtnMarkers.setImageResource(R.drawable.ic_ab_markers);
+		}
+
+		if (mFragment instanceof NetMapFragment) {
+			((NetMapFragment)mFragment).checkMarkers();
 		}
 	}
 

@@ -8,11 +8,34 @@
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
 
-	<View
+	<RelativeLayout
 		android:id="@+id/actionbar_background"
 		android:layout_width="match_parent"
-		android:layout_height="0dp"
-		android:background="@color/black_semi" />
+		android:layout_height="64dp"
+		android:orientation="horizontal">
+
+		<LinearLayout
+			android:id="@+id/btn_markers_container"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_alignParentRight="true"
+			android:orientation="vertical">
+
+			<View
+				style="@style/NavigationSpacer"
+				android:background="@drawable/nav_markers_gradient" />
+
+			<ImageButton
+				style="@style/NavigationButton"
+				android:id="@+id/btn_markers"
+				android:src="@drawable/ic_ab_markers"
+				android:background="@color/nav_markers_button" />
+
+			<View
+				style="@style/NavigationLine"
+				android:background="@color/nav_markers_line" />
+		</LinearLayout>
+	</RelativeLayout>
 
 	<LinearLayout
 		android:id="@+id/sector_info"

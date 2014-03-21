@@ -12,7 +12,9 @@ import android.telephony.TelephonyManager;
 import android.telephony.cdma.CdmaCellLocation;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import carnero.netmap.App;
 import carnero.netmap.R;
@@ -42,7 +44,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	private int[] mFillColors = new int[5];
 	private int[] mStrokeColors = new int[5];
 	private XY mTouched;
-	private boolean mBtsMarkersEnabled = true;
 	private HashMap<String, Marker> mBtsMarkers = new HashMap<String, Marker>();
 	private HashMap<XY, Polygon> mCoveragePolygons = new HashMap<XY, Polygon>();
 	private Polygon mCoverageTouch;
@@ -91,7 +92,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		mLastLocation = mGeo.getLastLoc();
 		mCentered = false;
 
-		mBtsMarkersEnabled = Preferences.isSetMarkers(getActivity());
 		initializeMap();
 		setMyMarker();
 
@@ -120,43 +120,6 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		mMap = null;
 
 		super.onPause();
-	}
-
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		inflater.inflate(R.menu.netmap_fragment, menu);
-
-		super.onCreateOptionsMenu(menu, inflater);
-	}
-
-	@Override
-	public void onPrepareOptionsMenu(Menu menu) {
-		final MenuItem item = menu.findItem(R.id.menu_markers);
-		if (mBtsMarkersEnabled) {
-			item.setIcon(R.drawable.ic_ab_markers_off);
-		} else {
-			item.setIcon(R.drawable.ic_ab_markers);
-		}
-
-		super.onPrepareOptionsMenu(menu);
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item.getItemId() == R.id.menu_markers) {
-			mBtsMarkersEnabled = Preferences.switchMarkers(getActivity());
-			if (mBtsMarkersEnabled) {
-				item.setIcon(R.drawable.ic_ab_markers_off);
-			} else {
-				item.setIcon(R.drawable.ic_ab_markers);
-			}
-
-			checkMarkers();
-
-			return true;
-		}
-
-		return false;
 	}
 
 	@Override
@@ -216,7 +179,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			addSector(sector);
 		}
 
-		if (mBtsMarkersEnabled) {
+		if (Preferences.isSetMarkers(getActivity())) {
 			final List<Bts> btses = BtsCache.getAll();
 			Log.d(Constants.TAG, "Loaded BTS count: " + btses.size());
 			for (Bts bts : btses) {
@@ -279,9 +242,9 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		}
 	}
 
-	private void checkMarkers() {
+	public void checkMarkers() {
 		synchronized (mBtsMarkers) {
-			if (mBtsMarkersEnabled) {
+			if (Preferences.isSetMarkers(getActivity())) {
 				final List<Bts> btses = BtsCache.getAll();
 				Log.d(Constants.TAG, "Loaded BTS count: " + btses.size());
 				for (Bts bts : btses) {
@@ -301,7 +264,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	}
 
 	private void addBts(Bts bts) {
-		if (!mBtsMarkersEnabled || bts.location == null) {
+		if (!Preferences.isSetMarkers(getActivity()) || bts.location == null) {
 			return;
 		}
 
@@ -363,7 +326,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		if (mMap == null) {
 			return;
 		}
-		if (!mBtsMarkersEnabled || mLastBts == null || mLastBts.location == null || mLastLocation == null) {
+		if (!Preferences.isSetMarkers(getActivity()) || mLastBts == null || mLastBts.location == null || mLastLocation == null) {
 			removeConnection();
 			return;
 		}
