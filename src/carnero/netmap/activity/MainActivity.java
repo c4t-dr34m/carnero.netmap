@@ -1,5 +1,7 @@
 package carnero.netmap.activity;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
@@ -16,6 +18,8 @@ import carnero.netmap.App;
 import carnero.netmap.R;
 import carnero.netmap.common.Preferences;
 import carnero.netmap.common.Util;
+import carnero.netmap.database.DatabaseHelper;
+import carnero.netmap.fragment.ImportDialog;
 import carnero.netmap.fragment.NetMapFragment;
 import carnero.netmap.iface.IBackHandler;
 import carnero.netmap.model.Sector;
@@ -43,13 +47,36 @@ public class MainActivity extends Activity {
 			window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 		}
 
+		File importFile = DatabaseHelper.getImportFile();
+		if (importFile.exists()) {
+			ImportDialog.Listener listener = new ImportDialog.Listener() {
+				@Override
+				public void ok() {
+					App.getDatabaseHelper().importDB();
+
+					// kill it, kill it with fire
+					System.exit(0);
+				}
+
+				@Override
+				public void cancel() {
+					// empty
+				}
+			};
+
+			ImportDialog dialog = ImportDialog.newInstance(listener);
+			dialog.show(getFragmentManager(), ImportDialog.class.getName());
+		}
+
 		vBtnOperatorContainer = findViewById(R.id.btn_operator_container);
 		vBtnOperator = (TextView)findViewById(R.id.btn_operator);
 		vBtnSectorsContainer = findViewById(R.id.btn_sectors_container);
 		vBtnSectors = (TextView)findViewById(R.id.btn_sectors);
 		vBtnMarkers = (ImageButton)findViewById(R.id.btn_markers);
 
-		vBtnOperator.setText(App.getOperatorID());
+		StringBuilder operator = new StringBuilder(App.getOperatorID());
+		operator.insert(3, "'");
+		vBtnOperator.setText(operator.toString());
 
 		checkMarkers();
 		vBtnMarkers.setOnClickListener(new View.OnClickListener() {

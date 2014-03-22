@@ -6,6 +6,7 @@
 	<color name="black">@android:color/black</color>
 	<color name="black_semi">#77000000</color>
 	<color name="none">@android:color/transparent</color>
+	<color name="text">#FF444444</color>
 	<!-- transparent -->
 	<color name="black_transparent">#88000000</color>
 	<!-- navigation -->

@@ -11,11 +11,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
 import android.util.Log;
 
+import carnero.netmap.App;
 import carnero.netmap.common.Constants;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-	public OperatorDatabase od;
+	protected OperatorDatabase mOD;
 	// consts
     public static final String DB_NAME = "carnero.netmap";
 	public static final int DB_VERSION = 3;
@@ -26,7 +27,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-	    // empty
+	    final String tableBTS = getBTSTableName(App.getOperatorID());
+	    final String tableSectors = getSectorsTableName(App.getOperatorID());
+
+	    // first-time; it's called before init()
+	    db.execSQL(DatabaseStructure.SQL.createBts(tableBTS));
+	    db.execSQL(DatabaseStructure.SQL.createBtsIndex(tableBTS));
+	    db.execSQL(DatabaseStructure.SQL.createSector(tableSectors));
+	    db.execSQL(DatabaseStructure.SQL.createSectorIndex(tableSectors));
     }
 
     @Override
@@ -34,19 +42,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	    // empty
     }
 
-	protected void init(final String operatorID) {
-		if (od == null) {
-			od = new OperatorDatabase();
-			od.operatorID = operatorID;
-			od.database = getWritableDatabase();
+	protected void init() {
+		if (mOD == null) {
+			mOD = new OperatorDatabase();
+			mOD.operatorID = App.getOperatorID();
+			mOD.database = getWritableDatabase();
 
-			if (od.database.inTransaction()) {
-				od.database.endTransaction();
+			if (mOD.database.inTransaction()) {
+				mOD.database.endTransaction();
 			}
 
 			// check tables
 			ArrayList<String> tables = new ArrayList<>();
-			Cursor cursor = od.database.rawQuery("select name from sqlite_master where type='table'", null);
+			Cursor cursor = mOD.database.rawQuery("select name from sqlite_master where type='table'", null);
 			if (cursor != null) {
 				int index = cursor.getColumnIndex("name");
 
@@ -59,44 +67,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				} while (cursor.moveToNext());
 			}
 
-			String tableBTS = getBTSTableName(operatorID);
-			String tableSectors = getSectorsTableName(operatorID);
+			final String tableBTS = getBTSTableName(App.getOperatorID());
+			final String tableSectors = getSectorsTableName(App.getOperatorID());
 
 			if (tables.contains(DatabaseStructure.TABLE.BTS) || tables.contains(DatabaseStructure.TABLE.SECTOR)) {
 				// move old tables
-				od.database.beginTransaction();
+				mOD.database.beginTransaction();
 				try {
 					if (tables.contains(DatabaseStructure.TABLE.BTS)) {
-						od.database.execSQL("alter table '" + DatabaseStructure.TABLE.BTS + "' rename to '" + tableBTS + "'");
+						mOD.database.execSQL("alter table '" + DatabaseStructure.TABLE.BTS + "' rename to '" + tableBTS + "'");
 					}
 					if (tables.contains(DatabaseStructure.TABLE.SECTOR)) {
-						od.database.execSQL("alter table '" + DatabaseStructure.TABLE.SECTOR + "' rename to '" + tableSectors + "'");
+						mOD.database.execSQL("alter table '" + DatabaseStructure.TABLE.SECTOR + "' rename to '" + tableSectors + "'");
 					}
 
-					od.database.setTransactionSuccessful();
+					mOD.database.setTransactionSuccessful();
 					Log.i(Constants.TAG, "Old tables moved...");
 				} catch (Exception e) {
 					Log.e(Constants.TAG, "Failed to move old tables! " + e.toString());
 				} finally {
-					od.database.endTransaction();
+					mOD.database.endTransaction();
 				}
 			} else if (!tables.contains(tableBTS) || !tables.contains(tableSectors)) {
 				// create new operator-related tables
-				od.database.beginTransaction();
+				mOD.database.beginTransaction();
 				try {
 					if (!tables.contains(tableBTS)) {
-						od.database.execSQL(DatabaseStructure.SQL.createBts(tableBTS));
-						od.database.execSQL(DatabaseStructure.SQL.createBtsIndex(tableBTS));
+						mOD.database.execSQL(DatabaseStructure.SQL.createBts(tableBTS));
+						mOD.database.execSQL(DatabaseStructure.SQL.createBtsIndex(tableBTS));
 					}
 					if (!tables.contains(tableSectors)) {
-						od.database.execSQL(DatabaseStructure.SQL.createSector(tableSectors));
-						od.database.execSQL(DatabaseStructure.SQL.createSectorIndex(tableSectors));
+						mOD.database.execSQL(DatabaseStructure.SQL.createSector(tableSectors));
+						mOD.database.execSQL(DatabaseStructure.SQL.createSectorIndex(tableSectors));
 					}
-					Log.i(Constants.TAG, "Table for " + operatorID + " created...");
+					Log.i(Constants.TAG, "Table for " + App.getOperatorID() + " created...");
 				} catch (Exception e) {
 					Log.e(Constants.TAG, "Failed to create new tables! " + e.toString());
 				} finally {
-					od.database.endTransaction();
+					mOD.database.endTransaction();
 				}
 			}
 		}
@@ -111,29 +119,53 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	}
 
 	public OperatorDatabase getDatabase(final String operatorID) {
-		if (od == null) {
-			init(operatorID);
+		if (mOD == null) {
+			init();
 		}
 
-		return od;
+		return mOD;
 	}
 
     public void release() {
-	    if (od != null) {
-		    if (od.database.inTransaction()) {
-			    od.database.endTransaction();
+	    if (mOD != null) {
+		    if (mOD.database.inTransaction()) {
+			    mOD.database.endTransaction();
 		    }
 
-		    od.database.close();
-		    od = null;
+		    mOD.database.close();
+		    mOD = null;
 
             SQLiteDatabase.releaseMemory();
         }
     }
 
+	public static String getImportFileName() {
+		return DatabaseHelper.DB_NAME + ".import.sqlite";
+	}
+
+	public static File getImportFile() {
+		File sd = Environment.getExternalStorageDirectory();
+		String path = DatabaseHelper.DB_NAME + ".import.sqlite";
+
+		if (!sd.canWrite()) {
+			return null;
+		}
+
+		return new File(sd, path);
+	}
+
+	public static long getImportFileDate() {
+		File file = getImportFile();
+		if (file.exists()) {
+			return file.lastModified();
+		} else {
+			return -1;
+		}
+	}
+
 	public static File getExportFile() {
 		File sd = Environment.getExternalStorageDirectory();
-		String path = DatabaseHelper.DB_NAME + ".sqlite";
+		String path = DatabaseHelper.DB_NAME + ".backup.sqlite";
 
 		if (!sd.canWrite()) {
 			return null;
@@ -143,37 +175,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	}
 
 	public void importDB() {
+		exportDB();
+
 		File data = Environment.getDataDirectory();
 
 		String pathApp = "/data/carnero.netmap/databases/" + DatabaseHelper.DB_NAME;
 		File databaseApp = new File(data, pathApp);
-		File databaseExport = getExportFile();
+		File databaseExport = getImportFile();
 
-		if (databaseExport == null) {
+		if (databaseExport == null || !databaseExport.exists()) {
 			Log.e(Constants.TAG, "Unable to export database");
 			return;
 		}
 
 		try {
-			if (od != null) {
-				od.database.close();
-				od = null;
+			if (mOD != null) {
+				mOD.database.close();
+				mOD = null;
 			}
 			if (databaseApp.exists()) {
 				databaseApp.delete();
 			}
+			databaseApp.createNewFile();
 
-			FileChannel application = new FileInputStream(databaseApp).getChannel();
-			FileChannel exported = new FileOutputStream(databaseExport).getChannel();
+			FileChannel source = new FileInputStream(databaseExport).getChannel();
+			FileChannel destination = new FileOutputStream(databaseApp).getChannel();
 
-			application.transferFrom(exported, 0, exported.size());
+			destination.transferFrom(source, 0, source.size());
 
-			application.close();
-			exported.close();
+			destination.close();
+			source.close();
+
+			databaseExport.delete();
 		} catch (FileNotFoundException fnfe) {
-			Log.e(Constants.TAG, "Failed to export databse (FNFE)");
+			fnfe.printStackTrace();
+			Log.e(Constants.TAG, "Failed to import database (FNFE)");
 		} catch (IOException ioe) {
-			Log.e(Constants.TAG, "Failed to export databse (IOE)");
+			Log.e(Constants.TAG, "Failed to import database (IOE)");
 		}
 	}
 
@@ -198,17 +236,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		}
 
 		try {
-			FileChannel application = new FileInputStream(databaseApp).getChannel();
-			FileChannel exported = new FileOutputStream(databaseExport).getChannel();
+			if (databaseExport.exists()) {
+				databaseExport.delete();
+			}
+			databaseExport.createNewFile();
 
-			exported.transferFrom(application, 0, application.size());
+			FileChannel source = new FileInputStream(databaseApp).getChannel();
+			FileChannel destination = new FileOutputStream(databaseExport).getChannel();
 
-			application.close();
-			exported.close();
+			destination.transferFrom(source, 0, source.size());
+
+			source.close();
+			destination.close();
 		} catch (FileNotFoundException fnfe) {
-			Log.e(Constants.TAG, "Failed to export databse (FNFE)");
+			Log.e(Constants.TAG, "Failed to export database (FNFE)");
 		} catch (IOException ioe) {
-			Log.e(Constants.TAG, "Failed to export databse (IOE)");
+			Log.e(Constants.TAG, "Failed to export database (IOE)");
 		}
 	}
 }

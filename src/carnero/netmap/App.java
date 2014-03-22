@@ -77,4 +77,8 @@ public class App extends Application {
 	public static OperatorDatabase getDatabase() {
 		return sDbHelper.getDatabase(getOperatorID());
 	}
+
+	public static DatabaseHelper getDatabaseHelper() {
+		return sDbHelper;
+	}
 }
