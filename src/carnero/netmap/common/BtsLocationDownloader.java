@@ -1,11 +1,5 @@
 package carnero.netmap.common;
 
-import android.os.AsyncTask;
-import android.text.TextUtils;
-import android.util.Log;
-
-import com.google.android.gms.maps.model.LatLng;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,8 +12,14 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
+import android.os.AsyncTask;
+import android.text.TextUtils;
+import android.util.Log;
+
+import carnero.netmap.App;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
+import com.google.android.gms.maps.model.LatLng;
 
 public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
 
@@ -39,6 +39,10 @@ public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
     }
 
     public LatLng doInBackground(Void... params) {
+	    if (!App.getOperatorID().startsWith("230")) { // this is not czech SIM card, skipping
+		    return null;
+	    }
+
         final String url = Constants.URL_BASE_GSMWEB + Long.toHexString(mBts.cid).toUpperCase();
         String data = null;
 
