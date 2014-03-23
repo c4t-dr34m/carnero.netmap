@@ -30,11 +30,11 @@ public class MainActivity extends Activity {
 
 	protected Fragment mFragment;
 	//
-	protected View vBtnOperatorContainer;
-	protected TextView vBtnOperator;
-	protected View vBtnSectorsContainer;
-	protected TextView vBtnSectors;
-	protected ImageView vBtnMarkers;
+	protected View vSeparator;
+	protected TextView vOperator;
+	protected View vSectorContainer;
+	protected TextView vSector;
+	protected ImageView vMarkers;
 
 	@Override
 	public void onCreate(Bundle state) {
@@ -69,18 +69,18 @@ public class MainActivity extends Activity {
 			dialog.show(getFragmentManager(), ImportDialog.class.getName());
 		}
 
-		vBtnOperatorContainer = findViewById(R.id.btn_operator_container);
-		vBtnOperator = (TextView)findViewById(R.id.btn_operator);
-		vBtnSectorsContainer = findViewById(R.id.btn_sectors_container);
-		vBtnSectors = (TextView)findViewById(R.id.btn_sectors);
-		vBtnMarkers = (ImageButton)findViewById(R.id.btn_markers);
+		vSeparator = findViewById(R.id.actionbar_separator);
+		vOperator = (TextView)findViewById(R.id.operator);
+		vMarkers = (ImageButton)findViewById(R.id.btn_markers);
+		vSectorContainer = findViewById(R.id.sector_container);
+		vSector = (TextView)findViewById(R.id.sector);
 
 		StringBuilder operator = new StringBuilder(App.getOperatorID());
 		operator.insert(3, "'");
-		vBtnOperator.setText(operator.toString());
+		vOperator.setText(operator.toString());
 
 		checkMarkers();
-		vBtnMarkers.setOnClickListener(new View.OnClickListener() {
+		vMarkers.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				Preferences.switchMarkers(MainActivity.this);
@@ -108,7 +108,7 @@ public class MainActivity extends Activity {
 		super.onResume();
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-			findViewById(R.id.actionbar_background).getLayoutParams().height = Util.getTopPanelsHeight(this);
+			findViewById(R.id.actionbar).getLayoutParams().height = Util.getTopPanelsHeight(this);
 		}
 	}
 
@@ -138,9 +138,9 @@ public class MainActivity extends Activity {
 
 	protected void checkMarkers() {
 		if (Preferences.isSetMarkers(this)) {
-			vBtnMarkers.setImageResource(R.drawable.ic_ab_markers_off);
+			vMarkers.setImageResource(R.drawable.ic_ab_markers_off);
 		} else {
-			vBtnMarkers.setImageResource(R.drawable.ic_ab_markers);
+			vMarkers.setImageResource(R.drawable.ic_ab_markers);
 		}
 
 		if (mFragment instanceof NetMapFragment) {
@@ -149,12 +149,14 @@ public class MainActivity extends Activity {
 	}
 
 	public void displayInfo(Sector sector) {
-		vBtnSectors.setText(getResources().getTextArray(R.array.network_types)[sector.network]);
+		vSector.setText(getResources().getTextArray(R.array.network_types)[sector.network]);
 
-		vBtnSectorsContainer.setVisibility(View.VISIBLE);
+		vSeparator.setBackgroundResource(R.color.bcg_actionbar_line_on);
+		vSectorContainer.setVisibility(View.VISIBLE);
 	}
 
 	public void hideInfo() {
-		vBtnSectorsContainer.setVisibility(View.GONE);
+		vSectorContainer.setVisibility(View.GONE);
+		vSeparator.setBackgroundResource(R.color.bcg_actionbar_line_off);
 	}
 }

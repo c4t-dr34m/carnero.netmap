@@ -9,10 +9,12 @@
 		<item name="android:layout_width">match_parent</item>
 		<item name="android:layout_height">0dp</item>
 		<item name="android:layout_weight">1</item>
-		<item name="android:background">@drawable/nav_gradient</item>
 	</style>
 
-	<style name="NavigationButton">
+
+	<style name="ActionBar" />
+
+	<style name="ActionBar.Title">
 		<item name="android:layout_width">wrap_content</item>
 		<item name="android:layout_height">wrap_content</item>
 		<item name="android:layout_alignParentBottom">true</item>
@@ -20,23 +22,63 @@
 		<item name="android:gravity">bottom|center_horizontal</item>
 		<item name="android:paddingTop">8dp</item>
 		<item name="android:paddingRight">8dp</item>
-		<item name="android:paddingBottom">8dp</item>
+		<item name="android:paddingBottom">0dp</item>
 		<item name="android:paddingLeft">8dp</item>
 		<item name="android:singleLine">true</item>
 		<item name="android:ellipsize">end</item>
-		<item name="android:textSize">36dp</item>
+		<item name="android:textSize">32dp</item>
 		<item name="android:textColor">@color/white</item>
-		<item name="android:background">@color/nav_button</item>
+		<item name="android:fontFamily">sans-serif-thin</item>
 	</style>
 
-	<style name="NavigationLine">
-		<item name="android:layout_width">match_parent</item>
-		<item name="android:layout_height">2dp</item>
-		<item name="android:background">@color/nav_line</item>
+	<style name="ActionBar.Operator">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:layout_alignParentBottom">true</item>
+		<item name="android:gravity">bottom|center_horizontal</item>
+		<item name="android:paddingTop">8dp</item>
+		<item name="android:paddingRight">8dp</item>
+		<item name="android:paddingBottom">4dp</item>
+		<item name="android:paddingLeft">8dp</item>
+		<item name="android:singleLine">true</item>
+		<item name="android:ellipsize">end</item>
+		<item name="android:textSize">16dp</item>
+		<item name="android:textColor">@color/white</item>
+		<item name="android:fontFamily">sans-serif-thin</item>
 	</style>
 
-	<style name="DialogTitle">
-		<item name="android:layout_width">match_parent</item>
+	<style name="ActionBar.Button">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:layout_alignParentBottom">true</item>
+		<item name="android:gravity">bottom|center_horizontal</item>
+		<item name="android:paddingTop">8dp</item>
+		<item name="android:paddingRight">8dp</item>
+		<item name="android:paddingBottom">8dp</item>
+		<item name="android:paddingLeft">8dp</item>
+		<item name="android:background">@drawable/bcg_actionbar_button</item>
+	</style>
+
+	<style name="ActionBar.Sector">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:layout_centerHorizontal">true</item>
+		<item name="android:gravity">bottom|center_horizontal</item>
+		<item name="android:paddingTop">4dp</item>
+		<item name="android:paddingRight">16dp</item>
+		<item name="android:paddingBottom">4dp</item>
+		<item name="android:paddingLeft">16dp</item>
+		<item name="android:singleLine">true</item>
+		<item name="android:ellipsize">end</item>
+		<item name="android:textSize">28dp</item>
+		<item name="android:textColor">@color/white</item>
+		<item name="android:fontFamily">sans-serif-thin</item>
+	</style>
+
+	<style name="Dialog" />
+
+	<style name="Dialog.Title">
+	<item name="android:layout_width">match_parent</item>
 		<item name="android:layout_height">wrap_content</item>
 		<item name="android:singleLine">true</item>
 		<item name="android:ellipsize">end</item>
@@ -44,16 +86,16 @@
 		<item name="android:textColor">@color/text</item>
 	</style>
 
-	<style name="DialogMessage">
-		<item name="android:layout_width">match_parent</item>
+	<style name="Dialog.Message">
+	<item name="android:layout_width">match_parent</item>
 		<item name="android:layout_height">wrap_content</item>
 		<item name="android:singleLine">false</item>
 		<item name="android:textSize">16dp</item>
 		<item name="android:textColor">@color/text</item>
 	</style>
 
-	<style name="DialogButton">
-		<item name="android:layout_width">wrap_content</item>
+	<style name="Dialog.Button">
+	<item name="android:layout_width">wrap_content</item>
 		<item name="android:layout_height">wrap_content</item>
 		<item name="android:paddingTop">8dp</item>
 		<item name="android:paddingRight">16dp</item>
@@ -65,12 +107,12 @@
 		<item name="android:textColor">@color/white</item>
 	</style>
 
-	<style name="DialogButton.Positive">
-		<item name="android:textStyle">bold</item>
+	<style name="Dialog.Button.Positive">
+	<item name="android:textStyle">bold</item>
 		<item name="android:background">#FF666666</item>
 	</style>
 
-	<style name="DialogButton.Negative">
-		<item name="android:background">#FFAAAAAA</item>
+	<style name="Dialog.Button.Negative">
+	<item name="android:background">#FFAAAAAA</item>
 	</style>
 </resources>

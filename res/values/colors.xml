@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<!-- basic -->
+	<color name="yellow">#FFFFC200</color>
 	<color name="white">@android:color/white</color>
 	<color name="white_semi">#77FFFFFF</color>
 	<color name="black">@android:color/black</color>
@@ -9,10 +10,11 @@
 	<color name="text">#FF444444</color>
 	<!-- transparent -->
 	<color name="black_transparent">#88000000</color>
-	<!-- navigation -->
-	<color name="nav_spacer">#22000000</color>
-	<color name="nav_button">#66000000</color>
-	<color name="nav_line">#AA000000</color>
+	<!-- actionbar -->
+	<color name="bcg_actionbar">#EE333333</color>
+	<color name="bcg_actionbar_line_off">#FF333333</color>
+	<color name="bcg_actionbar_line_on">#FFFFC200</color>
+	<color name="bcg_actionbar_button_fp">#66FFC200</color>
 	<!-- connection -->
 	<color name="connection_current">#AA000000</color>
 	<!-- coverage -->
