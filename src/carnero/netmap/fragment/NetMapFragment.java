@@ -305,8 +305,15 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 	private void addSector(Sector sector) {
 		final int level = Util.getNetworkLevel(sector.network);
-		final int fill = mFillColors[level - 1];
-		final int stroke = mStrokeColors[level - 1];
+		final int fill;
+		final int stroke;
+		if (level < 0) {
+			fill = mFillColors[0];
+			stroke = mStrokeColors[0];
+		} else {
+			fill = mFillColors[level];
+			stroke = mStrokeColors[level];
+		}
 
 		if (mCoveragePolygons.containsKey(sector.index)) {
 			mCoveragePolygons.get(sector.index).remove();

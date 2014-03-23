@@ -22,6 +22,8 @@
 		<item name="android:paddingRight">8dp</item>
 		<item name="android:paddingBottom">8dp</item>
 		<item name="android:paddingLeft">8dp</item>
+		<item name="android:singleLine">true</item>
+		<item name="android:ellipsize">end</item>
 		<item name="android:textSize">36dp</item>
 		<item name="android:textColor">@color/white</item>
 		<item name="android:background">@color/nav_button</item>

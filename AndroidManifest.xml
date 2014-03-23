@@ -2,10 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="carnero.netmap"
 	android:installLocation="internalOnly"
-	android:versionCode="13"
-	android:versionName="0.08.1">
+	android:versionCode="16"
+	android:versionName="0.08.4">
 
-	<uses-sdk
+<uses-sdk
 		android:minSdkVersion="16"
 		android:targetSdkVersion="19" />
 	<uses-feature
