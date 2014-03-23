@@ -45,6 +45,8 @@ public class SectorDb {
 			if (cursor != null && cursor.getCount() > 0) {
 				saved = true;
 			}
+		} catch (Exception e) {
+			// pokemon
 		} finally {
 			if (cursor != null) {
 				cursor.close();
@@ -166,6 +168,8 @@ public class SectorDb {
 				sector.signalAverage = cursor.getDouble(idxAverage);
 				sector.signalCount = cursor.getInt(idxCount);
 			}
+		} catch (Exception e) {
+			// pokemon
 		} finally {
 			if (cursor != null) {
 				cursor.close();
@@ -210,6 +214,8 @@ public class SectorDb {
 					sectorList.add(sector);
 				} while (cursor.moveToNext());
 			}
+		} catch (Exception e) {
+			// pokemon
 		} finally {
 			if (cursor != null) {
 				cursor.close();

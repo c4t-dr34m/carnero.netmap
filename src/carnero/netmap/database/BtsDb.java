@@ -45,6 +45,8 @@ public class BtsDb {
 			if (cursor != null && cursor.getCount() > 0) {
 				saved = true;
 			}
+		} catch (Exception e) {
+			// pokemon
 		} finally {
 			if (cursor != null) {
 				cursor.close();
@@ -202,6 +204,8 @@ public class BtsDb {
 					bts.location = new LatLng(cursor.getDouble(idxLatitude), cursor.getDouble(idxLongitude));
 				}
 			}
+		} catch (Exception e) {
+			// pokemon
 		} finally {
 			if (cursor != null) {
 				cursor.close();
@@ -248,6 +252,8 @@ public class BtsDb {
 					btsList.add(bts);
 				} while (cursor.moveToNext());
 			}
+		} catch (Exception e) {
+			// pokemon
 		} finally {
 			if (cursor != null) {
 				cursor.close();

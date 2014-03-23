@@ -23,6 +23,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
+	    init();
     }
 
     @Override
@@ -100,7 +101,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 						mOD.database.execSQL(DatabaseStructure.SQL.createSector(tableSectors));
 						mOD.database.execSQL(DatabaseStructure.SQL.createSectorIndex(tableSectors));
 					}
-					Log.i(Constants.TAG, "Table for " + App.getOperatorID() + " created...");
+
+					mOD.database.setTransactionSuccessful();
+					Log.i(Constants.TAG, "Tables for " + App.getOperatorID() + " created...");
 				} catch (Exception e) {
 					Log.e(Constants.TAG, "Failed to create new tables! " + e.toString());
 				} finally {
