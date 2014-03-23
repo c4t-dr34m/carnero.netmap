@@ -479,7 +479,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 			final PolygonOptions polygonOpts = new PolygonOptions();
 			polygonOpts.strokeWidth(getResources().getDimension(R.dimen.touched_margin));
-			polygonOpts.strokeColor(getResources().getColor(R.color.white));
+			polygonOpts.strokeColor(getResources().getColor(R.color.yellow));
 			polygonOpts.fillColor(getResources().getColor(R.color.none));
 			polygonOpts.zIndex(1000);
 			polygonOpts.addAll(sector.getCorners());

@@ -45,12 +45,26 @@
 		android:layout_height="wrap_content"
 		android:layout_centerHorizontal="true"
 		android:layout_below="@id/actionbar_separator"
-		android:visibility="gone"
-		android:background="@color/bcg_actionbar">
+		android:visibility="gone">
 
 		<TextView
 			style="@style/ActionBar.Sector"
 			android:id="@+id/sector"
-			android:layout_centerInParent="true" />
+			android:layout_centerInParent="true"
+			android:background="@color/bcg_actionbar" />
+
+		<View
+			android:layout_width="match_parent"
+			android:layout_height="8dp"
+			android:layout_alignParentLeft="true"
+			android:layout_toLeftOf="@id/sector"
+			android:background="@color/bcg_actionbar" />
+
+		<View
+			android:layout_width="match_parent"
+			android:layout_height="8dp"
+			android:layout_alignParentRight="true"
+			android:layout_toRightOf="@id/sector"
+			android:background="@color/bcg_actionbar" />
 	</RelativeLayout>
 </RelativeLayout>
