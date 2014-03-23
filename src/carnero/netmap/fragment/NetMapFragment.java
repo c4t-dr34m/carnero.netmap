@@ -104,7 +104,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
 
 		// analytics
-		EasyTracker easyTracker = EasyTracker.getInstance(getActivity());
+		EasyTracker easyTracker = EasyTracker.getInstance(App.getContext());
 		easyTracker.send(MapBuilder.createEvent(
 				"ui", // category
 				"map:" + App.getOperatorID(), // action

@@ -16,6 +16,8 @@ import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
 import carnero.netmap.model.Sector;
 import carnero.netmap.model.SectorCache;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 
 public class App extends Application {
 
@@ -23,43 +25,56 @@ public class App extends Application {
 	private static Geo sGeo;
 	private static String sOperatorID;
 	private static DatabaseHelper sDbHelper;
-    public boolean initialized = false;
+	public boolean initialized = false;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
+	@Override
+	public void onCreate() {
+		super.onCreate();
 
-	    sContext = this;
-	    sGeo = new Geo(this);
-        sDbHelper = new DatabaseHelper(this);
+		sContext = this;
+		sGeo = new Geo(this);
+		sDbHelper = new DatabaseHelper(this);
 
-        final List<Bts> btses = BtsDb.loadAll(getDatabase());
-        for (Bts bts : btses) {
-            BtsCache.addFromDb(bts);
-        }
+		final List<Bts> btses = BtsDb.loadAll(getDatabase());
+		for (Bts bts : btses) {
+			BtsCache.addFromDb(bts);
+		}
 
-        final List<Sector> sectors = SectorDb.loadAll(getDatabase());
-        for (Sector sector : sectors) {
-            SectorCache.addFromDb(sector);
-        }
+		final List<Sector> sectors = SectorDb.loadAll(getDatabase());
+		for (Sector sector : sectors) {
+			SectorCache.addFromDb(sector);
+		}
 
-        initialized = true;
-    }
+		initialized = true;
 
-    @Override
-    public void onTerminate() {
-        if (sGeo != null) {
-            sGeo.release();
-            sGeo = null;
-        }
-        if (sDbHelper != null) {
-            sDbHelper.release();
-            sDbHelper = null;
-        }
-	    sContext = null;
+		EasyTracker easyTracker = EasyTracker.getInstance(App.getContext());
+		easyTracker.send(MapBuilder.createEvent(
+				"ui", // category
+				"start", // action
+				"sectors:" + SectorCache.size(), // label
+				null // value
+			).build()
+		);
+	}
 
-        super.onTerminate();
-    }
+	@Override
+	public void onTerminate() {
+		if (sGeo != null) {
+			sGeo.release();
+			sGeo = null;
+		}
+		if (sDbHelper != null) {
+			sDbHelper.release();
+			sDbHelper = null;
+		}
+		sContext = null;
+
+		super.onTerminate();
+	}
+
+	public static Context getContext() {
+		return sContext;
+	}
 
 	public static String getOperatorID() {
 		if (TextUtils.isEmpty(sOperatorID)) {
@@ -70,9 +85,9 @@ public class App extends Application {
 		return sOperatorID;
 	}
 
-    public static Geo getGeolocation() {
-        return sGeo;
-    }
+	public static Geo getGeolocation() {
+		return sGeo;
+	}
 
 	public static OperatorDatabase getDatabase() {
 		return sDbHelper.getDatabase(getOperatorID());

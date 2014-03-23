@@ -6,6 +6,7 @@ import java.util.Date;
 import android.content.Context;
 import android.view.View;
 
+import carnero.netmap.App;
 import carnero.netmap.R;
 import carnero.netmap.database.DatabaseHelper;
 import com.google.analytics.tracking.android.EasyTracker;
@@ -47,7 +48,7 @@ public class ImportDialog extends AbstractDialog {
 				}
 
 				// analytics
-				EasyTracker easyTracker = EasyTracker.getInstance(getActivity());
+				EasyTracker easyTracker = EasyTracker.getInstance(App.getContext());
 				easyTracker.send(MapBuilder.createEvent(
 						"ui", // category
 						"import", // action

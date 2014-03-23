@@ -19,130 +19,143 @@ import android.util.Log;
 import carnero.netmap.App;
 import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 import com.google.android.gms.maps.model.LatLng;
 
 public class BtsLocationDownloader extends AsyncTask<Void, Void, LatLng> {
 
-    private Bts mBts;
-    private OnLocationObtainedListener mListener;
-    // consts
-    private final Pattern locationPattern = Pattern.compile("<tr><td>([0-9]+)</td><td>[^<]*</td><td>([0-9]+)</td>(<td[^>]*>.*</td>){5}<td><A HREF=\"([^\"]+)\"[^>]*>[^<]+</A>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-    private final Pattern linkPattern = Pattern.compile("d=coor_([0-9\\.]+),([0-9\\.]+)_[0-9]+", Pattern.CASE_INSENSITIVE);
+	private Bts mBts;
+	private OnLocationObtainedListener mListener;
+	// consts
+	private final Pattern locationPattern = Pattern.compile("<tr><td>([0-9]+)</td><td>[^<]*</td><td>([0-9]+)</td>(<td[^>]*>.*</td>){5}<td><A HREF=\"([^\"]+)\"[^>]*>[^<]+</A>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private final Pattern linkPattern = Pattern.compile("d=coor_([0-9\\.]+),([0-9\\.]+)_[0-9]+", Pattern.CASE_INSENSITIVE);
 
-    public BtsLocationDownloader(Bts bts, OnLocationObtainedListener listener) {
-        mBts = bts;
-        mListener = listener;
-    }
+	public BtsLocationDownloader(Bts bts, OnLocationObtainedListener listener) {
+		mBts = bts;
+		mListener = listener;
+	}
 
-    public void onPreExecute() {
-        mBts.setLoading();
-    }
+	public void onPreExecute() {
+		mBts.setLoading();
+	}
 
-    public LatLng doInBackground(Void... params) {
-	    if (!App.getOperatorID().startsWith("230")) { // this is not czech SIM card, skipping
-		    return null;
-	    }
+	public LatLng doInBackground(Void... params) {
+		if (!App.getOperatorID().startsWith("230")) { // this is not czech SIM card, skipping
+			return null;
+		}
 
-        final String url = Constants.URL_BASE_GSMWEB + Long.toHexString(mBts.cid).toUpperCase();
-        String data = null;
+		final String url = Constants.URL_BASE_GSMWEB + Long.toHexString(mBts.cid).toUpperCase();
+		String data = null;
 
-        try {
-            Log.d(Constants.TAG, "Downloading location for " + mBts.lac + ":" + mBts.cid);
+		try {
+			Log.d(Constants.TAG, "Downloading location for " + mBts.lac + ":" + mBts.cid);
 
-            URL u = new URL(url);
-            URLConnection uc = u.openConnection();
+			URL u = new URL(url);
+			URLConnection uc = u.openConnection();
 
-            uc.setRequestProperty("Host", u.getHost());
-            uc.setRequestProperty("Accept", "application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
-            uc.setRequestProperty("Accept-Charset", "utf-8, iso-8859-1, utf-16, *;q=0.7");
-            uc.setRequestProperty("Accept-Language", "en-US");
-            uc.setRequestProperty("User-Agent", Util.pickUserAgent());
-            uc.setRequestProperty("Connection", "keep-alive");
-            uc.setRequestProperty("Keep-Alive", "300");
+			uc.setRequestProperty("Host", u.getHost());
+			uc.setRequestProperty("Accept", "application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
+			uc.setRequestProperty("Accept-Charset", "utf-8, iso-8859-1, utf-16, *;q=0.7");
+			uc.setRequestProperty("Accept-Language", "en-US");
+			uc.setRequestProperty("User-Agent", Util.pickUserAgent());
+			uc.setRequestProperty("Connection", "keep-alive");
+			uc.setRequestProperty("Keep-Alive", "300");
 
-            HttpURLConnection connection = (HttpURLConnection) uc;
-            connection.setReadTimeout(30000); // 30 sec
-            connection.setRequestMethod("GET");
-            HttpURLConnection.setFollowRedirects(false);
-            connection.setDoInput(true);
-            connection.setDoOutput(false);
+			HttpURLConnection connection = (HttpURLConnection)uc;
+			connection.setReadTimeout(30000); // 30 sec
+			connection.setRequestMethod("GET");
+			HttpURLConnection.setFollowRedirects(false);
+			connection.setDoInput(true);
+			connection.setDoOutput(false);
 
-            final String encoding = connection.getContentEncoding();
+			final String encoding = connection.getContentEncoding();
 
-            InputStream ins;
-            if (encoding != null && encoding.equalsIgnoreCase("gzip")) {
-                ins = new GZIPInputStream(connection.getInputStream());
-            } else if (encoding != null && encoding.equalsIgnoreCase("deflate")) {
-                ins = new InflaterInputStream(connection.getInputStream(), new Inflater(true));
-            } else {
-                ins = connection.getInputStream();
-            }
-            final InputStreamReader inr = new InputStreamReader(ins);
-            final BufferedReader br = new BufferedReader(inr);
-            final StringBuffer buffer = new StringBuffer();
+			InputStream ins;
+			if (encoding != null && encoding.equalsIgnoreCase("gzip")) {
+				ins = new GZIPInputStream(connection.getInputStream());
+			} else if (encoding != null && encoding.equalsIgnoreCase("deflate")) {
+				ins = new InflaterInputStream(connection.getInputStream(), new Inflater(true));
+			} else {
+				ins = connection.getInputStream();
+			}
+			final InputStreamReader inr = new InputStreamReader(ins);
+			final BufferedReader br = new BufferedReader(inr);
+			final StringBuffer buffer = new StringBuffer();
 
-            Util.readIntoBuffer(br, buffer);
-            data = buffer.toString();
+			Util.readIntoBuffer(br, buffer);
+			data = buffer.toString();
 
-            connection.disconnect();
-            br.close();
-            ins.close();
-            inr.close();
-        } catch (Exception e) {
-            // pokemon
-        }
+			connection.disconnect();
+			br.close();
+			ins.close();
+			inr.close();
+		} catch (Exception e) {
+			// pokemon
+		}
 
-        if (!TextUtils.isEmpty(data)) {
-            int lac;
-            int cid;
-            String link = null;
-            double latitude = Double.NaN;
-            double longitude = Double.NaN;
+		if (!TextUtils.isEmpty(data)) {
+			int lac;
+			int cid;
+			String link = null;
+			double latitude = Double.NaN;
+			double longitude = Double.NaN;
 
-            final Matcher locationMatcher = locationPattern.matcher(data);
-            while (locationMatcher.find()) {
-                if (locationMatcher.groupCount() > 0) {
-                    lac = Integer.parseInt(locationMatcher.group(2));
-                    cid = Integer.parseInt(locationMatcher.group(1));
-                    link = locationMatcher.group(4);
+			final Matcher locationMatcher = locationPattern.matcher(data);
+			while (locationMatcher.find()) {
+				if (locationMatcher.groupCount() > 0) {
+					lac = Integer.parseInt(locationMatcher.group(2));
+					cid = Integer.parseInt(locationMatcher.group(1));
+					link = locationMatcher.group(4);
 
-                    if (lac == mBts.lac && cid == mBts.cid) {
-                        break;
-                    }
-                }
-            }
+					if (lac == mBts.lac && cid == mBts.cid) {
+						break;
+					}
+				}
+			}
 
-            if (TextUtils.isEmpty(link)) {
-                mBts.locationNA = true;
-                return null;
-            }
+			if (TextUtils.isEmpty(link)) {
+				mBts.locationNA = true;
+				return null;
+			}
 
-            final Matcher linkMatcher = linkPattern.matcher(link);
-            if (linkMatcher.find() && linkMatcher.groupCount() > 0) {
-                latitude = Double.parseDouble(linkMatcher.group(2));
-                longitude = Double.parseDouble(linkMatcher.group(1));
-            }
+			final Matcher linkMatcher = linkPattern.matcher(link);
+			if (linkMatcher.find() && linkMatcher.groupCount() > 0) {
+				latitude = Double.parseDouble(linkMatcher.group(2));
+				longitude = Double.parseDouble(linkMatcher.group(1));
+			}
 
-            if (latitude != Double.NaN && longitude != Double.NaN) {
-                Log.i(Constants.TAG, "BTS' location successfully downloaded");
+			if (latitude != Double.NaN && longitude != Double.NaN) {
+				Log.i(Constants.TAG, "BTS' location successfully downloaded");
 
-                return new LatLng(latitude, longitude);
-            }
-        }
+				return new LatLng(latitude, longitude);
+			}
+		}
 
-        Log.e(Constants.TAG, "Failed to download BTS' location");
+		mBts.locationNA = true;
 
-        mBts.locationNA = true;
-        return null;
-    }
+		Log.e(Constants.TAG, "Failed to download BTS' location");
 
-    public void onPostExecute(LatLng result) {
-        mBts.locationNew = result;
+		// analytics
+		EasyTracker easyTracker = EasyTracker.getInstance(App.getContext());
+		easyTracker.send(MapBuilder.createEvent(
+				"internet", // category
+				"gsmweb:unknown", // action
+				App.getOperatorID() + ":" + mBts.lac + ":" + mBts.cid, // label
+				null // value
+			).build()
+		);
 
-        if (mListener != null) {
-            mListener.onLocationObtained(mBts);
-        }
+		return null;
+	}
 
-        mBts.clearLoading();
-    }
+	public void onPostExecute(LatLng result) {
+		mBts.locationNew = result;
+
+		if (mListener != null) {
+			mListener.onLocationObtained(mBts);
+		}
+
+		mBts.clearLoading();
+	}
 }

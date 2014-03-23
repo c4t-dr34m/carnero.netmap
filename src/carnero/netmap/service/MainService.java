@@ -129,17 +129,17 @@ public class MainService extends Service {
 			sUseGPS = !sUseGPS;
 
 			// analytics
-			String action;
+			String label;
 			if (sUseGPS) {
-				action = "enabled";
+				label = "on";
 			} else {
-				action = "disabled";
+				label = "off";
 			}
 			EasyTracker easyTracker = EasyTracker.getInstance(this);
 			easyTracker.send(MapBuilder.createEvent(
 					"service", // category
-					"gps:" + action, // action
-					null, // label
+					"gps", // action
+					label, // label
 					null // value
 				).build()
 			);
