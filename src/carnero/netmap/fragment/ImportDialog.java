@@ -8,6 +8,8 @@ import android.view.View;
 
 import carnero.netmap.R;
 import carnero.netmap.database.DatabaseHelper;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 
 public class ImportDialog extends AbstractDialog {
 
@@ -43,6 +45,17 @@ public class ImportDialog extends AbstractDialog {
 				if (listener != null) {
 					listener.ok();
 				}
+
+				// analytics
+				EasyTracker easyTracker = EasyTracker.getInstance(getActivity());
+				easyTracker.send(MapBuilder.createEvent(
+						"ui", // category
+						"import", // action
+						null, // label
+						null // value
+					).build()
+				);
+
 				dismiss();
 			}
 		});

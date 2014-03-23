@@ -24,6 +24,7 @@ import android.telephony.cdma.CdmaCellLocation;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 
+import carnero.netmap.App;
 import carnero.netmap.R;
 import carnero.netmap.activity.MainActivity;
 import carnero.netmap.common.Constants;
@@ -34,6 +35,8 @@ import carnero.netmap.listener.OnLocationObtainedListener;
 import carnero.netmap.model.Bts;
 import carnero.netmap.model.BtsCache;
 import carnero.netmap.model.SectorCache;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 import com.google.android.gms.maps.model.LatLng;
 
 public class MainService extends Service {
@@ -124,6 +127,22 @@ public class MainService extends Service {
 		boolean toggleGPS = intent.getBooleanExtra(Constants.EXTRA_TOGGLE_GPS, false);
 		if (toggleGPS) {
 			sUseGPS = !sUseGPS;
+
+			// analytics
+			String action;
+			if (sUseGPS) {
+				action = "enabled";
+			} else {
+				action = "disabled";
+			}
+			EasyTracker easyTracker = EasyTracker.getInstance(this);
+			easyTracker.send(MapBuilder.createEvent(
+					"service", // category
+					"gps:" + action, // action
+					null, // label
+					null // value
+				).build()
+			);
 		}
 		checkGPS();
 
@@ -292,14 +311,31 @@ public class MainService extends Service {
             SectorCache.update(LocationUtil.getSectorXY(position), type);
         }
 
-        if (cell instanceof GsmCellLocation) {
+	    String action;
+	    String label = "";
+	    if (cell instanceof GsmCellLocation) {
             final GsmCellLocation gsmCell = (GsmCellLocation) cell;
 	        mBts = BtsCache.update(operator, gsmCell.getLac(), gsmCell.getCid(), type);
-        } else if (cell instanceof CdmaCellLocation) {
-            Log.w(Constants.TAG, "CDMA location not implemented");
+
+	        action = "gsm";
+	        label = ":" + gsmCell.getLac() + ":" + gsmCell.getCid();
+	    } else if (cell instanceof CdmaCellLocation) {
+	        action = "cdma";
+	    } else {
+	        action = "unknown";
         }
 
 	    showNotification();
+
+	    // analytics
+	    EasyTracker easyTracker = EasyTracker.getInstance(this);
+	    easyTracker.send(MapBuilder.createEvent(
+			    "service", // category
+			    "bts:" + action, // action
+			    App.getOperatorID() + label, // label
+			    null // value
+		    ).build()
+	    );
     }
 
     // location

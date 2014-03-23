@@ -24,6 +24,8 @@ import carnero.netmap.iface.IBackHandler;
 import carnero.netmap.listener.OnBtsCacheChangedListener;
 import carnero.netmap.listener.OnSectorCacheChangedListener;
 import carnero.netmap.model.*;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -100,6 +102,16 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		BtsCache.addListener(this);
 
 		mTelephony.listen(mListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_CELL_INFO | PhoneStateListener.LISTEN_DATA_ACTIVITY);
+
+		// analytics
+		EasyTracker easyTracker = EasyTracker.getInstance(getActivity());
+		easyTracker.send(MapBuilder.createEvent(
+				"ui", // category
+				"map:" + App.getOperatorID(), // action
+				"markers:" + Preferences.isSetMarkers(getActivity()), // label
+				null // value
+			).build()
+		);
 	}
 
 	@Override
