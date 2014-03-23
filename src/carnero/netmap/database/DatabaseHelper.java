@@ -18,30 +18,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	protected OperatorDatabase mOD;
 	// consts
-    public static final String DB_NAME = "carnero.netmap";
+	public static final String DB_NAME = "carnero.netmap";
 	public static final int DB_VERSION = 3;
 
-    public DatabaseHelper(Context context) {
-        super(context, DB_NAME, null, DB_VERSION);
-	    init();
-    }
+	public DatabaseHelper(Context context) {
+		super(context, DB_NAME, null, DB_VERSION);
+		init();
+	}
 
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-	    final String tableBTS = getBTSTableName(App.getOperatorID());
-	    final String tableSectors = getSectorsTableName(App.getOperatorID());
+	@Override
+	public void onCreate(SQLiteDatabase db) {
+		final String tableBTS = getBTSTableName(App.getOperatorID());
+		final String tableSectors = getSectorsTableName(App.getOperatorID());
 
-	    // first-time; it's called before init()
-	    db.execSQL(DatabaseStructure.SQL.createBts(tableBTS));
-	    db.execSQL(DatabaseStructure.SQL.createBtsIndex(tableBTS));
-	    db.execSQL(DatabaseStructure.SQL.createSector(tableSectors));
-	    db.execSQL(DatabaseStructure.SQL.createSectorIndex(tableSectors));
-    }
+		// first-time; it's called before init()
+		db.execSQL(DatabaseStructure.SQL.createBts(tableBTS));
+		db.execSQL(DatabaseStructure.SQL.createBtsIndex(tableBTS));
+		db.execSQL(DatabaseStructure.SQL.createSector(tableSectors));
+		db.execSQL(DatabaseStructure.SQL.createSectorIndex(tableSectors));
+	}
 
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int versionOld, int versionNew) {
-	    // empty
-    }
+	@Override
+	public void onUpgrade(SQLiteDatabase db, int versionOld, int versionNew) {
+		// empty
+	}
 
 	protected void init() {
 		if (mOD == null) {
@@ -61,10 +61,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 				cursor.moveToFirst();
 				do {
-					String table = cursor.getString(index);
-					tables.add(table);
-
-					Log.d(Constants.TAG, "table: " + table);
+					tables.add(cursor.getString(index));
 				} while (cursor.moveToNext());
 			}
 
@@ -129,18 +126,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		return mOD;
 	}
 
-    public void release() {
-	    if (mOD != null) {
-		    if (mOD.database.inTransaction()) {
-			    mOD.database.endTransaction();
-		    }
+	public void release() {
+		if (mOD != null) {
+			if (mOD.database.inTransaction()) {
+				mOD.database.endTransaction();
+			}
 
-		    mOD.database.close();
-		    mOD = null;
+			mOD.database.close();
+			mOD = null;
 
-            SQLiteDatabase.releaseMemory();
-        }
-    }
+			SQLiteDatabase.releaseMemory();
+		}
+	}
 
 	public static String getImportFileName() {
 		return DatabaseHelper.DB_NAME + ".import.sqlite";
