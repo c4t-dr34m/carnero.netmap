@@ -81,7 +81,9 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle state) {
 		final View mapView = super.onCreateView(inflater, container, state);
+
 		setMapTransparent((ViewGroup)mapView);
+		setMapFilter(mapView);
 
 		return mapView;
 	}
@@ -254,6 +256,25 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 		}
 	}
 
+	private void setMapFilter(View view) {
+		/* // this inverts map colors (w/ markers and polygons)
+		float invert[] = { // R G B A W
+			-1.0f, +0.0f, +0.0f, +1.0f, +1.0f,
+			+0.0f, -1.0f, +0.0f, +1.0f, +1.0f,
+			+0.0f, +0.0f, -1.0f, +1.0f, +1.0f,
+			+0.0f, +0.0f, +0.0f, +1.0f, +0.0f
+		};
+		ColorMatrix matrix = new ColorMatrix(invert);
+		ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+
+		Paint paint  = new Paint();
+		paint.setColorFilter(filter);
+
+		view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+		view.setLayerPaint(paint);
+		*/
+	}
+
 	public void checkMarkers() {
 		synchronized (mBtsMarkers) {
 			if (Preferences.isSetMarkers(getActivity())) {
@@ -355,7 +376,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			final PolylineOptions polylineOpts = new PolylineOptions();
 			polylineOpts.zIndex(1010);
 			polylineOpts.width(getResources().getDimension(R.dimen.connection_width));
-			polylineOpts.color(getResources().getColor(R.color.yellow));
+			polylineOpts.color(getResources().getColor(R.color.connection_current));
 			polylineOpts.add(mLastBts.location);
 			polylineOpts.add(mLastLocation);
 

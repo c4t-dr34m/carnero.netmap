@@ -16,7 +16,7 @@
 	<color name="bcg_actionbar_line_on">#FFFFC200</color>
 	<color name="bcg_actionbar_button_fp">#66FFC200</color>
 	<!-- connection -->
-	<color name="connection_current">#AA000000</color>
+	<color name="connection_current">#FFFFC200</color>
 	<!-- coverage -->
 	<color name="cell_border">#AAFFFFFF</color>
 	<color name="cell_touch">#55000000</color>
