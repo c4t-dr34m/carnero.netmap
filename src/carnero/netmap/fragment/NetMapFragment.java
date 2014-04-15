@@ -176,6 +176,7 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 			mMap.setMyLocationEnabled(false);
 			mMap.setOnCameraChangeListener(new MapMoveListener());
 			mMap.setOnMapClickListener(new CoverageClickListener());
+			mMap.setInfoWindowAdapter(new BTSDetailAdapter());
 
 			if (mMap.getMaxZoomLevel() < mZoomDefault) {
 				mZoomDefault = mMap.getMaxZoomLevel();
@@ -526,6 +527,19 @@ public class NetMapFragment extends MapFragment implements SimpleGeoReceiver, On
 
 			MainActivity activity = (MainActivity)getActivity();
 			activity.displayInfo(sector);
+		}
+	}
+
+	public class BTSDetailAdapter implements GoogleMap.InfoWindowAdapter {
+
+		@Override
+		public View getInfoWindow(Marker marker) {
+			return null;
+		}
+
+		@Override
+		public View getInfoContents(Marker marker) {
+			return null;
 		}
 	}
 

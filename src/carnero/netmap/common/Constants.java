@@ -12,8 +12,11 @@ public class Constants {
 	public static final int NOTIFICATION_ID = 48;
 
 	// extras
+	public static final String EXTRA_RESURRECT = "extra_resurrect"; // boolean
 	public static final String EXTRA_WAKEUP = "extra_wakeup"; // boolean
 	public static final String EXTRA_TOGGLE_GPS = "extra_toggle_gps"; // boolean
+	public static final String EXTRA_KILL_WITH_FIRE = "extra_kill_with_fire"; // boolean
+	public static final String EXTRA_KILL_REMEMBER = "extra_kill_remember"; // boolean
 
 	// geolocation config
 	public static final int GEO_DISTANCE = 30; // 30 m

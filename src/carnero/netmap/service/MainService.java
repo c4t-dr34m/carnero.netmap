@@ -29,6 +29,7 @@ import carnero.netmap.R;
 import carnero.netmap.activity.MainActivity;
 import carnero.netmap.common.Constants;
 import carnero.netmap.common.LocationUtil;
+import carnero.netmap.common.Preferences;
 import carnero.netmap.common.Util;
 import carnero.netmap.database.DatabaseHelper;
 import carnero.netmap.listener.OnLocationObtainedListener;
@@ -114,6 +115,29 @@ public class MainService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		if (intent.getBooleanExtra(Constants.EXTRA_KILL_WITH_FIRE, false)) {
+			if (intent.getBooleanExtra(Constants.EXTRA_KILL_REMEMBER, false)) {
+				Preferences.rememberKill(this);
+			}
+
+			sUseGPS = false;
+
+			checkGPS();
+			cancelOneShotLocation();
+
+			stop();
+			stopSelf();
+
+			return -1;
+		}
+
+		if (intent.getBooleanExtra(Constants.EXTRA_RESURRECT, false)) {
+			Preferences.forgetKill(this);
+		} else if (Preferences.isKilled(this)) {
+			stopSelf();
+			return -1;
+		}
+
 		NetworkInfo wifi = mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 		if (wifi == null || !wifi.isConnected()) {
 			boolean wakeup = intent.getBooleanExtra(Constants.EXTRA_WAKEUP, false);
@@ -151,15 +175,31 @@ public class MainService extends Service {
 
 	@Override
 	public void onDestroy() {
-        sRunning = false;
+		stop();
+
+		super.onDestroy();
+	}
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		return null;
+	}
+
+	public static boolean isRunning() {
+		return sRunning;
+	}
+
+	protected void stop() {
+		sRunning = false;
 
 		if (mWakeLock != null) {
 			mWakeLock.release();
 			mWakeLock = null;
 		}
 
-        cancelPassiveLocation();
+		cancelPassiveLocation();
 		cancelActiveLocation();
+
 		try {
 			unregisterReceiver(mPassiveReceiver);
 		} catch (IllegalArgumentException iae) {
@@ -176,18 +216,7 @@ public class MainService extends Service {
 			// pokemon
 		}
 		mTelephonyManager.listen(mListener, PhoneStateListener.LISTEN_NONE);
-
-        super.onDestroy();
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    public static boolean isRunning() {
-        return sRunning;
-    }
+	}
 
 	protected void checkGPS() {
 		if (sUseGPS) {
@@ -212,18 +241,11 @@ public class MainService extends Service {
 
 	protected void showNotification() {
 		PendingIntent gsmWeb = null;
-		final long time = System.currentTimeMillis();
 		final int type = mTelephonyManager.getNetworkType();
 
 		final StringBuilder sbShort = new StringBuilder();
-		final StringBuilder sbLong = new StringBuilder();
 
 		if (mBts != null) {
-			sbShort.append(mBts.toString());
-
-			sbLong.append(mBts.toString());
-			sbLong.append("\n");
-
 			final String url = Constants.URL_BASE_GSMWEB + Long.toHexString(mBts.cid).toUpperCase();
 			final Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.setData(Uri.parse(url));
@@ -232,30 +254,35 @@ public class MainService extends Service {
 			mBts.getLocation(mLocationListener);
 		}
 
-		sbLong.append("\n");
-		sbLong.append("Sectors collected: " + SectorCache.size());
+		sbShort.append(SectorCache.size() + " sectors");
 		if (sUseGPS) {
-			sbLong.append("; GPS: ");
+			sbShort.append("; GPS: ");
 			if (mGPSAccuracy >= 0) {
-				sbLong.append(Math.round(mGPSAccuracy));
-				sbLong.append("m");
+				sbShort.append(Math.round(mGPSAccuracy));
+				sbShort.append("m");
 			} else {
-				sbLong.append("N/A");
+				sbShort.append("no fix");
 			}
 		}
 
 		if (mNotificationManager != null) {
-			final Intent serviceIntent = new Intent(this, MainService.class);
-			serviceIntent.putExtra(Constants.EXTRA_TOGGLE_GPS, true);
-			final PendingIntent toggleGPS = PendingIntent.getService(this, -1, serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+			final Intent gpsIntent = new Intent(this, MainService.class);
+			gpsIntent.putExtra(Constants.EXTRA_TOGGLE_GPS, true);
+			final PendingIntent toggleGPS = PendingIntent.getService(this, -1, gpsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+			final Intent killIntent = new Intent(this, MainService.class);
+			killIntent.putExtra(Constants.EXTRA_KILL_WITH_FIRE, true);
+			killIntent.putExtra(Constants.EXTRA_KILL_REMEMBER, true);
+			final PendingIntent killService = PendingIntent.getService(this, -1, killIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 			final Intent notificationIntent = new Intent(this, MainActivity.class);
 			final PendingIntent intent = PendingIntent.getActivity(this, -1, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-			final Notification.Builder nb = new Notification.Builder(this);
 
+			final Notification.Builder nb = new Notification.Builder(this);
 			nb.setSmallIcon(mIcons[Util.getNetworkLevel(type)]);
 			nb.setOngoing(true);
-			nb.setWhen(time);
+			nb.setWhen(System.currentTimeMillis());
+			nb.setOnlyAlertOnce(true);
 			nb.setContentTitle(mNetworkTypes[type]);
 			nb.setContentText(sbShort.toString());
 			nb.setContentIntent(intent);
@@ -269,11 +296,9 @@ public class MainService extends Service {
 				labelGPS = getString(R.string.notification_location_fine);
 			}
 			nb.addAction(android.R.drawable.ic_menu_mylocation, labelGPS, toggleGPS);
+			nb.addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.notification_kill), killService);
 
-			final Notification.BigTextStyle ns = new Notification.BigTextStyle(nb);
-			ns.bigText(sbLong.toString());
-
-			mNotificationManager.notify(Constants.NOTIFICATION_ID, ns.build());
+			mNotificationManager.notify(Constants.NOTIFICATION_ID, nb.build());
 		}
 	}
 
@@ -363,6 +388,12 @@ public class MainService extends Service {
 		final Intent intent = new Intent(Constants.GEO_ACTIVE_INTENT);
 		mActivePending = PendingIntent.getBroadcast(this, -1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constants.GEO_TIME, Constants.GEO_DISTANCE, mActivePending);
+	}
+
+	public void cancelOneShotLocation() {
+		if (mOneShotPending != null) {
+			mLocationManager.removeUpdates(mOneShotPending);
+		}
 	}
 
 	public void cancelPassiveLocation() {

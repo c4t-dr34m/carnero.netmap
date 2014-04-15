@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import carnero.netmap.App;
 import carnero.netmap.R;
+import carnero.netmap.common.Constants;
 import carnero.netmap.common.Preferences;
 import carnero.netmap.common.Util;
 import carnero.netmap.database.DatabaseHelper;
@@ -99,6 +100,7 @@ public class MainActivity extends Activity {
 
 		if (!MainService.isRunning()) {
 			final Intent serviceIntent = new Intent(this, MainService.class);
+			serviceIntent.putExtra(Constants.EXTRA_RESURRECT, true);
 			startService(serviceIntent);
 		}
 	}
