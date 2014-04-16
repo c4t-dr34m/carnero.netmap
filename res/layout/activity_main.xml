@@ -27,8 +27,14 @@
 
 		<ImageButton
 			style="@style/ActionBar.Button"
-			android:id="@+id/btn_markers"
+			android:id="@+id/btn_kill"
 			android:layout_alignParentRight="true"
+			android:src="@drawable/ic_ab_kill" />
+
+		<ImageButton
+			style="@style/ActionBar.Button"
+			android:id="@+id/btn_markers"
+			android:layout_toLeftOf="@id/btn_kill"
 			android:src="@drawable/ic_ab_markers" />
 	</RelativeLayout>
 

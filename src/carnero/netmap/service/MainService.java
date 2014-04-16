@@ -115,6 +115,11 @@ public class MainService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		Log.i(Constants.TAG, "kill: " + intent.getBooleanExtra(Constants.EXTRA_KILL_WITH_FIRE, false));
+		Log.i(Constants.TAG, "remember: " + intent.getBooleanExtra(Constants.EXTRA_KILL_REMEMBER, false));
+		Log.i(Constants.TAG, "resurrect: " + intent.getBooleanExtra(Constants.EXTRA_RESURRECT, false));
+		Log.i(Constants.TAG, "gps: " + intent.getBooleanExtra(Constants.EXTRA_TOGGLE_GPS, false));
+
 		if (intent.getBooleanExtra(Constants.EXTRA_KILL_WITH_FIRE, false)) {
 			if (intent.getBooleanExtra(Constants.EXTRA_KILL_REMEMBER, false)) {
 				Preferences.rememberKill(this);
@@ -128,14 +133,14 @@ public class MainService extends Service {
 			stop();
 			stopSelf();
 
-			return -1;
+			return super.onStartCommand(intent, flags, startId);
 		}
 
 		if (intent.getBooleanExtra(Constants.EXTRA_RESURRECT, false)) {
 			Preferences.forgetKill(this);
 		} else if (Preferences.isKilled(this)) {
 			stopSelf();
-			return -1;
+			return super.onStartCommand(intent, flags, startId);
 		}
 
 		NetworkInfo wifi = mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -268,12 +273,7 @@ public class MainService extends Service {
 		if (mNotificationManager != null) {
 			final Intent gpsIntent = new Intent(this, MainService.class);
 			gpsIntent.putExtra(Constants.EXTRA_TOGGLE_GPS, true);
-			final PendingIntent toggleGPS = PendingIntent.getService(this, -1, gpsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-			final Intent killIntent = new Intent(this, MainService.class);
-			killIntent.putExtra(Constants.EXTRA_KILL_WITH_FIRE, true);
-			killIntent.putExtra(Constants.EXTRA_KILL_REMEMBER, true);
-			final PendingIntent killService = PendingIntent.getService(this, -1, killIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+			final PendingIntent toggleGPS = PendingIntent.getService(this, -1, gpsIntent, PendingIntent.FLAG_ONE_SHOT);
 
 			final Intent notificationIntent = new Intent(this, MainActivity.class);
 			final PendingIntent intent = PendingIntent.getActivity(this, -1, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -290,13 +290,15 @@ public class MainService extends Service {
 				nb.addAction(android.R.drawable.ic_menu_search, getString(R.string.notification_gsmweb), gsmWeb);
 			}
 			final String labelGPS;
+			final int iconGPS;
 			if (sUseGPS) {
 				labelGPS = getString(R.string.notification_location_coarse);
+				iconGPS = android.R.drawable.ic_menu_compass;
 			} else {
 				labelGPS = getString(R.string.notification_location_fine);
+				iconGPS = android.R.drawable.ic_menu_mylocation;
 			}
-			nb.addAction(android.R.drawable.ic_menu_mylocation, labelGPS, toggleGPS);
-			nb.addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.notification_kill), killService);
+			nb.addAction(iconGPS, labelGPS, toggleGPS);
 
 			mNotificationManager.notify(Constants.NOTIFICATION_ID, nb.build());
 		}

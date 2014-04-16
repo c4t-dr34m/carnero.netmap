@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
 	protected View vSectorContainer;
 	protected TextView vSector;
 	protected ImageView vMarkers;
+	protected ImageView vKill;
 
 	@Override
 	public void onCreate(Bundle state) {
@@ -73,6 +74,7 @@ public class MainActivity extends Activity {
 		vSeparator = findViewById(R.id.actionbar_separator);
 		vOperator = (TextView)findViewById(R.id.operator);
 		vMarkers = (ImageButton)findViewById(R.id.btn_markers);
+		vKill = (ImageButton)findViewById(R.id.btn_kill);
 		vSectorContainer = findViewById(R.id.sector_container);
 		vSector = (TextView)findViewById(R.id.sector);
 
@@ -86,6 +88,12 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				Preferences.switchMarkers(MainActivity.this);
 				checkMarkers();
+			}
+		});
+		vKill.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				killService();
 			}
 		});
 
@@ -148,6 +156,14 @@ public class MainActivity extends Activity {
 		if (mFragment instanceof NetMapFragment) {
 			((NetMapFragment)mFragment).checkMarkers();
 		}
+	}
+
+	protected void killService() {
+		final Intent killIntent = new Intent(this, MainService.class);
+		killIntent.putExtra(Constants.EXTRA_KILL_WITH_FIRE, true);
+		killIntent.putExtra(Constants.EXTRA_KILL_REMEMBER, true);
+
+		startService(killIntent);
 	}
 
 	public void displayInfo(Sector sector) {

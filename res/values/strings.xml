@@ -3,11 +3,11 @@
 	<string name="app_name">NetMap</string>
 	<!-- menu -->
 	<string name="menu_markers">Switch markers</string>
+	<string name="menu_kill">Kill</string>
 	<!-- notification -->
 	<string name="notification_gsmweb">About BTS</string>
-	<string name="notification_location_fine">Use fine location</string>
-	<string name="notification_location_coarse">Use coarse location</string>
-	<string name="notification_kill">Kill</string>
+	<string name="notification_location_fine">GPS</string>
+	<string name="notification_location_coarse">Network</string>
 	<!-- dialog -->
 	<string name="dialog_import_title">Database found</string>
 	<string name="dialog_import_description">Do you want to import database (%1$s)? It will overwrite your already collected data.\n\n
